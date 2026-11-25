@@ -1,1 +1,2054 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FC Mobile · Competiții</title>
+<meta name="theme-color" content="#070b16">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --bg:#070b16;--bg2:#0b1122;--panel:#0f172b;--panel2:#141d36;--panel3:#1a2544;--border:#1f2a48;--border2:#2b3a63;
+  --text:#eaf0fb;--muted:#8d9bbb;--dim:#5b6890;
+  --acc:#3b82f6;--accRGB:59,130,246;--acc2:#22d3ee;
+  --ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--gold:#f5c542;
+  --r:16px;--sh:0 18px 40px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background:
+  radial-gradient(1100px 620px at 85% -15%,rgba(var(--accRGB),.13),transparent 60%),
+  radial-gradient(900px 520px at -15% 115%,rgba(34,211,238,.07),transparent 60%),var(--bg);background-attachment:fixed}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--acc);text-decoration:none}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#22305a;border-radius:9px;border:2px solid var(--bg)}
+#app{display:grid;grid-template-columns:264px 1fr;min-height:100vh}
+/* ---------- sidebar ---------- */
+#sidebar{background:linear-gradient(180deg,rgba(11,17,34,.96),rgba(7,11,22,.96));border-right:1px solid var(--border);padding:18px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:16px;overflow:auto;z-index:40}
+.brand{display:flex;align-items:center;gap:11px;padding:2px 6px;cursor:pointer}
+.brand .lg{width:40px;height:40px;border-radius:12px;background:conic-gradient(from 200deg,var(--acc),var(--acc2),#a78bfa,var(--acc));display:grid;place-items:center;box-shadow:0 8px 22px rgba(var(--accRGB),.35)}
+.brand .lg svg{stroke:#fff;width:22px;height:22px}
+.brand b{display:block;font-family:Rajdhani,Inter,sans-serif;font-size:19px;letter-spacing:.6px;line-height:1.05}
+.brand small{color:var(--muted);font-size:11.5px}
+.cbox{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:var(--panel);border:1px solid var(--border);cursor:pointer}
+.cbox:hover{border-color:var(--border2)}
+.cbox .t{min-width:0;flex:1}.cbox .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
+.cbox .t small{color:var(--muted);font-size:11.5px}
+.navlbl{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:4px 8px -6px;font-weight:700}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;border:0;background:none;color:var(--muted);cursor:pointer;text-align:left;font-weight:600;font-size:13.5px}
+.nav button:hover{background:var(--panel2);color:var(--text)}
+.nav button.on{background:linear-gradient(90deg,rgba(var(--accRGB),.2),rgba(var(--accRGB),.03));color:var(--text);box-shadow:inset 3px 0 0 var(--acc)}
+.nav button.on svg{color:var(--acc)}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px}
+.userbox{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--panel);border:1px solid var(--border)}
+.userbox .t{flex:1;min-width:0}.userbox b{display:block;font-size:13px}.userbox small{color:var(--muted);font-size:11.5px}
+/* ---------- main ---------- */
+main{min-width:0}
+#topbar{display:flex;align-items:center;gap:12px;padding:14px 30px;border-bottom:1px solid var(--border);background:rgba(7,11,22,.72);backdrop-filter:blur(14px);position:sticky;top:0;z-index:30}
+#topbar h1{font-size:17px;margin:0;font-weight:800;letter-spacing:-.2px}
+#topbar .sub{color:var(--muted);font-size:12.5px}
+#topbar .sp{flex:1}
+#menuBtn{display:none}
+.sync{display:inline-flex;align-items:center;gap:7px;font-size:12px;padding:5px 11px;border-radius:99px;border:1px solid var(--border);color:var(--muted);white-space:nowrap}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+.sync.ok i{background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+.sync.bad i{background:var(--bad)}
+#view{padding:26px 30px 80px;max-width:1440px;margin:0 auto}
+/* ---------- elements ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 15px;border-radius:11px;border:1px solid var(--border2);background:var(--panel2);cursor:pointer;font-weight:650;font-size:13px;white-space:nowrap;transition:.15s;color:var(--text)}
+.btn:hover{border-color:#41548a;background:var(--panel3)}
+.btn.primary{background:linear-gradient(135deg,var(--acc),color-mix(in srgb,var(--acc) 70%,#22d3ee));border-color:transparent;color:#fff;box-shadow:0 6px 18px rgba(var(--accRGB),.3)}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#03210f}
+.btn.danger{color:#fecaca;border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1)}
+.btn.danger:hover{background:rgba(239,68,68,.2)}
+.btn.ghost{background:none;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--text);background:var(--panel2)}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:9px}
+.btn.lg{padding:12px 20px;font-size:14px}
+.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+.ib{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:9px;border:1px solid transparent;background:none;color:var(--muted);cursor:pointer;flex:none}
+.ib:hover{background:var(--panel3);color:var(--text);border-color:var(--border2)}
+.ib.danger:hover{color:var(--bad)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.sp{flex:1}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.gauto{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.g21{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.card{background:linear-gradient(180deg,rgba(17,25,48,.95),rgba(13,20,40,.92));border:1px solid var(--border);border-radius:var(--r);padding:18px;position:relative}
+.card>h3{margin:0 0 14px;font-size:14.5px;letter-spacing:.1px;display:flex;align-items:center;gap:9px;font-weight:750}
+.card>h3 .sp{flex:1}
+.card>h3 svg{color:var(--acc)}
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.ph h2{margin:0;font-size:26px;letter-spacing:-.5px;font-weight:850}
+.ph p{margin:4px 0 0;color:var(--muted)}
+.muted{color:var(--muted)}.dim{color:var(--dim)}.small{font-size:12px}
+.kpi{display:flex;flex-direction:column;gap:2px}
+.kpi .v{font-size:30px;font-weight:850;letter-spacing:-.8px;font-family:Rajdhani,Inter;line-height:1.1}
+.kpi .l{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700;border:1px solid var(--border2);background:var(--panel2);color:var(--muted);white-space:nowrap}
+.chip.ok{color:#4ade80;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.09)}
+.chip.warn{color:#fbbf24;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.09)}
+.chip.bad{color:#f87171;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.09)}
+.chip.acc{color:var(--acc);border-color:rgba(var(--accRGB),.4);background:rgba(var(--accRGB),.1)}
+.chip.gold{color:var(--gold);border-color:rgba(245,197,66,.4);background:rgba(245,197,66,.1)}
+.bar{height:8px;border-radius:99px;background:var(--panel3);overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:99px}
+.empty{padding:40px 20px;text-align:center;color:var(--muted);border:1px dashed var(--border2);border-radius:var(--r)}
+.empty svg{width:34px;height:34px;color:var(--dim);margin-bottom:8px}
+.banner{display:flex;gap:11px;align-items:center;padding:12px 15px;border-radius:13px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);color:#fde3a7;margin-bottom:18px}
+.banner.info{background:rgba(var(--accRGB),.08);border-color:rgba(var(--accRGB),.3);color:#cfe0ff}
+.banner.ok{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3);color:#bbf7d0}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:none;color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:650;font-size:12.5px}
+.seg button.on{background:var(--panel3);color:var(--text);box-shadow:0 1px 0 rgba(255,255,255,.05) inset}
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;border-radius:13px;border:1px solid var(--border)}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);font-weight:800;padding:10px 10px;background:rgba(20,29,54,.9);border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:9px 10px;border-bottom:1px solid rgba(31,42,72,.65);vertical-align:middle;white-space:nowrap}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr:hover td{background:rgba(26,37,68,.5)}
+.tbl .c{text-align:center}.tbl .r{text-align:right}.tbl .b{font-weight:800}
+.tbl td.zone{padding:0;width:4px}
+.tbl tr.sep td{border-top:2px dashed rgba(255,255,255,.08)}
+.zone i{display:block;width:4px;height:38px;border-radius:0 3px 3px 0}
+.pos{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 4px;border-radius:8px;background:var(--panel3);font-weight:800;font-size:12px}
+.pts{font-weight:900;font-size:14px}
+.form{display:inline-flex;gap:3px}
+.form b{width:19px;height:19px;border-radius:6px;display:grid;place-items:center;font-size:10px;font-weight:800}
+.form .W{background:#16a34a;color:#fff}.form .D{background:#64748b;color:#fff}.form .L{background:#dc2626;color:#fff}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+/* team */
+.team{display:flex;align-items:center;gap:10px;min-width:0}
+.team .nm{min-width:0}
+.team b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.team small{display:block;color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo{flex:none;display:grid;place-items:center;overflow:hidden;border-radius:10px}
+.logo img{width:100%;height:100%;display:block}
+.logo.lph{font-weight:900;color:#fff;font-family:Rajdhani,Inter;letter-spacing:.3px;border:1px solid rgba(255,255,255,.12)}
+.clk{cursor:pointer}
+.clk:hover b{color:var(--acc)}
+/* ---------- matches ---------- */
+.mlist{display:flex;flex-direction:column;gap:8px}
+.match{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 12px;border-radius:13px;background:rgba(20,29,54,.6);border:1px solid var(--border)}
+.match:hover{border-color:var(--border2)}
+.match .h{justify-content:flex-end;text-align:right}
+.match .h .team{flex-direction:row-reverse}
+.match .meta{display:flex;align-items:center;gap:4px}
+.score{display:flex;align-items:center;gap:6px;font-family:Rajdhani,Inter;font-weight:700}
+.score .s{min-width:36px;height:36px;padding:0 6px;border-radius:10px;display:grid;place-items:center;font-size:21px;background:var(--panel3);border:1px solid var(--border2)}
+.score .s.w{background:rgba(var(--accRGB),.2);border-color:rgba(var(--accRGB),.5)}
+.score .vs{color:var(--dim);font-size:13px;font-family:Inter;font-weight:700;min-width:58px;text-align:center}
+.score input{width:46px;height:36px;text-align:center;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);font-size:18px;font-weight:800;font-family:Rajdhani,Inter}
+.score input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(var(--accRGB),.2)}
+.pens{font-size:11px;color:var(--muted);text-align:center;font-family:Inter;font-weight:600}
+.rhead{display:flex;align-items:center;gap:10px;margin:18px 0 8px;font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.rhead:first-child{margin-top:0}
+.rhead::after{content:"";flex:1;height:1px;background:var(--border)}
+/* ---------- bracket ---------- */
+.bracket{display:flex;gap:26px;overflow-x:auto;padding:6px 2px 14px}
+.bcol{display:flex;flex-direction:column;justify-content:space-around;gap:14px;min-width:214px;flex:1}
+.bcol>h4{margin:0 0 4px;text-align:center;font-size:11.5px;text-transform:uppercase;letter-spacing:1px;color:var(--acc);font-weight:800}
+.tie{background:rgba(20,29,54,.85);border:1px solid var(--border2);border-radius:13px;overflow:hidden;position:relative}
+.tie .tr{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border)}
+.tie .tr:last-of-type{border-bottom:0}
+.tie .tr .team{flex:1}
+.tie .tr .g{font-family:Rajdhani,Inter;font-weight:700;font-size:16px;min-width:22px;text-align:right;color:var(--muted)}
+.tie .tr.win{background:linear-gradient(90deg,rgba(var(--accRGB),.18),transparent)}
+.tie .tr.win .g,.tie .tr.win b{color:var(--text)}
+.tie .tr.lose{opacity:.55}
+.tie .foot{font-size:11px;color:var(--muted);padding:5px 10px;background:rgba(0,0,0,.18);display:flex;justify-content:space-between;gap:6px}
+.tie.final{border-color:rgba(245,197,66,.5);box-shadow:0 0 0 1px rgba(245,197,66,.15),0 10px 30px rgba(245,197,66,.08)}
+.champ{display:flex;align-items:center;gap:18px;padding:22px;border-radius:18px;background:linear-gradient(135deg,rgba(245,197,66,.2),rgba(245,197,66,.03));border:1px solid rgba(245,197,66,.45);margin-bottom:20px}
+.champ .tt{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold);font-weight:800}
+.champ .nn{font-size:26px;font-weight:900;letter-spacing:-.4px}
+/* ---------- hero ---------- */
+.hero{display:flex;align-items:center;gap:22px;padding:24px;border-radius:20px;border:1px solid var(--border2);background:
+  radial-gradient(600px 220px at 100% 0%,rgba(var(--accRGB),.28),transparent 70%),linear-gradient(135deg,var(--panel2),var(--panel));margin-bottom:20px;position:relative;overflow:hidden}
+.hero h2{margin:0;font-size:30px;font-weight:900;letter-spacing:-.7px}
+.hero .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ctype{display:flex;flex-direction:column;gap:10px;padding:22px;border-radius:18px;border:1px solid var(--border2);background:linear-gradient(160deg,var(--panel2),var(--panel));cursor:pointer;transition:.18s;text-align:left;color:var(--text)}
+.ctype:hover,.ctype.on{border-color:var(--acc);transform:translateY(-2px);box-shadow:0 14px 34px rgba(var(--accRGB),.18)}
+.ctype .ic{width:52px;height:52px;border-radius:15px;display:grid;place-items:center}
+.ctype .ic svg{width:28px;height:28px;stroke:#fff}
+.ctype b{font-size:16.5px}.ctype p{margin:0;color:var(--muted);font-size:12.8px}
+.ccard{padding:0;overflow:hidden;cursor:pointer;transition:.18s}
+.ccard:hover{transform:translateY(-2px);border-color:var(--border2)}
+.ccard .top{height:84px;position:relative}
+.ccard .bd{padding:14px 16px 16px;margin-top:-34px;position:relative}
+/* ---------- forms ---------- */
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fg label{font-size:12px;color:var(--muted);font-weight:650}
+.fg .hint{font-size:11.5px;color:var(--dim)}
+.in,select.in,textarea.in{width:100%;padding:10px 12px;border-radius:11px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);outline:none}
+.in:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(var(--accRGB),.18)}
+textarea.in{min-height:120px;resize:vertical;line-height:1.5}
+select.in.sm,.in.sm{padding:6px 9px;font-size:12.5px;border-radius:9px;width:auto}
+.check{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;margin-bottom:10px}
+.check input{width:17px;height:17px;accent-color:var(--acc)}
+.logo-up{display:flex;align-items:center;gap:14px}
+/* ---------- modal ---------- */
+.mb{position:fixed;inset:0;background:rgba(3,6,14,.72);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:100;padding:18px;animation:fd .15s}
+.md{width:min(560px,100%);max-height:calc(100vh - 36px);overflow:auto;background:linear-gradient(180deg,#121b33,#0d1428);border:1px solid var(--border2);border-radius:20px;box-shadow:var(--sh);animation:pp .18s}
+.md.wide{width:min(900px,100%)}.md.xwide{width:min(1200px,100%)}
+.md .mh{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#121b33;z-index:2}
+.md .mh h3{margin:0;font-size:16px;flex:1}
+.md .mbd{padding:20px}
+.md .mf{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--border);position:sticky;bottom:0;background:#0d1428}
+@keyframes fd{from{opacity:0}}@keyframes pp{from{transform:translateY(10px) scale(.98);opacity:0}}
+#toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:200}
+.toast{padding:11px 15px;border-radius:12px;background:#16213d;border:1px solid var(--border2);box-shadow:var(--sh);font-weight:600;font-size:13px;display:flex;gap:9px;align-items:center;animation:pp .2s;max-width:380px}
+.toast.ok{border-color:rgba(34,197,94,.5)}.toast.err{border-color:rgba(239,68,68,.55);color:#fecaca}
+/* ---------- stats ---------- */
+.lead{display:flex;flex-direction:column;gap:6px}
+.lead .li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:10px;padding:7px 8px;border-radius:10px}
+.lead .li:nth-child(1){background:rgba(245,197,66,.08)}
+.lead .li .v{font-family:Rajdhani,Inter;font-weight:700;font-size:18px}
+.hbar{display:grid;grid-template-columns:minmax(0,170px) 1fr 40px;gap:10px;align-items:center;margin-bottom:8px;font-size:12.5px}
+.hbar .b{height:10px;border-radius:9px;background:var(--panel3);overflow:hidden}.hbar .b i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tabs button{border:1px solid var(--border);background:var(--panel);color:var(--muted);padding:7px 13px;border-radius:10px;cursor:pointer;font-weight:650;font-size:12.5px}
+.tabs button.on{border-color:var(--acc);color:var(--text);background:rgba(var(--accRGB),.12)}
+.snap-head{display:none}
+.capturing{width:max-content!important;min-width:640px;max-width:none!important}
+.capturing .tw{overflow:visible!important}
+.capturing .nosnap{display:none!important}
+.capturing .snap-head{display:flex!important;align-items:center;gap:12px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--border2)}
+.snap-head .t b{display:block;font-size:17px;font-weight:850}.snap-head .t small{color:var(--muted)}
+.snap-foot{display:none}.capturing .snap-foot{display:block;margin-top:12px;font-size:11px;color:var(--dim);text-align:right}
+.pill-n{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:99px;background:var(--acc);color:#fff;font-size:11px;font-weight:800;padding:0 6px}
+.drag{cursor:grab}
+.kbd{font-size:11px;padding:1px 6px;border-radius:5px;border:1px solid var(--border2);color:var(--muted)}
+hr.s{border:0;border-top:1px solid var(--border);margin:16px 0}
+.scorers{display:flex;flex-direction:column;gap:6px}
+.scorers .sr{display:grid;grid-template-columns:1fr 70px 32px;gap:6px}
+.mini-note{font-size:11px;color:var(--dim)}
+/* ---------- responsive ---------- */
+@media (max-width:1100px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.g21{grid-template-columns:1fr}}
+@media (max-width:900px){
+  #toasts{left:12px;right:12px;bottom:auto;top:12px}
+  #app{grid-template-columns:1fr}
+  #sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;transform:translateX(-105%);transition:transform .22s;box-shadow:var(--sh)}
+  body.menu #sidebar{transform:none}
+  body.menu::after{content:"";position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35}
+  #menuBtn{display:inline-grid}
+  #topbar{padding:12px 16px}
+  #view{padding:18px 14px 80px}
+  .g2,.g3{grid-template-columns:1fr}
+  .hero{flex-direction:column;align-items:flex-start;padding:18px}
+  .hero h2{font-size:24px}
+  .match{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);padding:9px}
+  .match .meta{grid-column:1/-1;justify-content:center}
+  .score .s{min-width:30px;height:32px;font-size:18px}
+  .score input{width:40px}
+  .team small{display:none}
+  .ph h2{font-size:22px}
+}
+@media (max-width:520px){.g4{grid-template-columns:1fr 1fr}.kpi .v{font-size:24px}.hide-sm{display:none!important}}
+@media print{#sidebar,#topbar,.nosnap,.btn,.ib{display:none!important}#app{display:block}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar"></aside>
+  <main>
+    <header id="topbar"></header>
+    <section id="view"></section>
+  </main>
+</div>
+<div id="modal-root"></div>
+<div id="toasts"></div>
+<input type="file" id="fileInput" hidden>
+<script>
+'use strict';
+/* =====================================================================
+   FC Mobile · Competiții  —  UCL (format 2024+), Cupa Mondială, Campionat 2 ligi
+   Un singur fișier. Date în Firebase Realtime Database (nod: fcmCompetitii),
+   cu mod local de rezervă dacă baza de date nu e accesibilă.
+   ===================================================================== */
+const APP_VERSION = '1.0.0';
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAg-8kByVcC4gh1FEuZJvnhs525nQShixA",
+  authDomain: "diaspora-romana-15c53.firebaseapp.com",
+  databaseURL: "https://diaspora-romana-15c53-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "diaspora-romana-15c53",
+  storageBucket: "diaspora-romana-15c53.firebasestorage.app",
+  messagingSenderId: "983580221213",
+  appId: "1:983580221213:web:d9f4b82f8acb7ec47f8bf4"
+};
+const DB_ROOT = 'fcmCompetitii';
+const AUDIT_ROOT = 'fcmCompetitiiAudit';   // jurnal separat (nu se descarcă odată cu datele)
+const LOCAL_KEY = 'fcm-competitii-v1';
+const AUTH_KEY = 'fcm-competitii-auth';
+
+/* ---------------- utilitare ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const uid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-6);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd = n => crypto.getRandomValues(new Uint32Array(1))[0] % n;
+function shuffle(a){ a = [...a]; for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const sum = (a, f = x => x) => a.reduce((s, x) => s + (f(x) || 0), 0);
+const sign = n => n > 0 ? '+' + n : String(n);
+const isPow2 = n => n > 0 && (n & (n - 1)) === 0;
+const nextPow2 = n => { let p = 1; while (p < n) p *= 2; return p; };
+const clone = o => JSON.parse(JSON.stringify(o ?? null));
+const numOr = (v, d = null) => (v === '' || v == null || isNaN(+v)) ? d : +v;
+const hexRGB = h => { h = (h || '#3b82f6').replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(','); };
+const fmtDate = ts => ts ? new Date(ts).toLocaleString('ro-RO', {day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'}) : '';
+const fmtDay = s => { if (!s) return ''; const d = new Date(s); return isNaN(d) ? s : d.toLocaleString('ro-RO', {weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'}); };
+function download(name, text, mime = 'application/json'){
+  const b = text instanceof Blob ? text : new Blob([text], {type: mime + ';charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+// citește o imagine, o încadrează într-un pătrat transparent (fără deformare la capturi)
+function readImage(file, max = 192){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => { const img = new Image(); img.onload = () => {
+      const c = document.createElement('canvas'); c.width = c.height = max; const x = c.getContext('2d');
+      const s = Math.min(max / img.width, max / img.height); const w = img.width * s, h = img.height * s;
+      x.imageSmoothingQuality = 'high'; x.drawImage(img, (max - w) / 2, (max - h) / 2, w, h);
+      let out = c.toDataURL('image/webp', .9); if (!out.startsWith('data:image/webp')) out = c.toDataURL('image/png');
+      res(out);
+    }; img.onerror = rej; img.src = r.result; };
+    r.onerror = rej; r.readAsDataURL(file);
+  });
+}
+function pickFile(accept){
+  return new Promise(res => { const inp = $('#fileInput'); inp.value = ''; inp.accept = accept; inp.onchange = () => res(inp.files[0] || null); inp.click(); });
+}
+
+/* ---------------- iconițe ---------------- */
+const ICONS = {
+  home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  trophy:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/>',
+  table:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+  chart:'<path d="M18 20V10M12 20V4M6 20v-6"/>',
+  cog:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  trash:'<path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4h6v2"/>',
+  shuffle:'<path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
+  down:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>',
+  up:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/>',
+  x:'<path d="M18 6L6 18M6 6l12 12"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  back:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  ball:'<circle cx="12" cy="12" r="10"/><path d="M12 7l4.5 3.3-1.7 5.2H9.2l-1.7-5.2z"/><path d="M12 2v5M21.5 9.5l-5 .8M18 20l-3.2-4.5M6 20l3.2-4.5M2.5 9.5l5 .8"/>',
+  star:'<path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  layers:'<path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
+  cam:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  menu:'<path d="M3 6h18M3 12h18M3 18h18"/>',
+  bolt:'<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
+  zap:'<path d="M5 12h14M12 5l7 7-7 7"/>',
+  img:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
+  copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  arrowUp:'<path d="M12 19V5M5 12l7-7 7 7"/>',
+  arrowDown:'<path d="M12 5v14M19 12l-7 7-7-7"/>',
+  swap:'<path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  undo:'<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/>',
+  eye:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>',
+  medal:'<circle cx="12" cy="15" r="6"/><path d="M8.2 10.5 5 2h4l3 6 3-6h4l-3.2 8.5"/>',
+  fire:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>'
+};
+const ic = (n, s) => `<svg class="i" viewBox="0 0 24 24"${s ? ` style="width:${s}px;height:${s}px"` : ''}>${ICONS[n] || ''}</svg>`;
+
+/* SHA-256 (fără dependențe, funcționează și offline) */
+function sha256(str){
+  const ascii = unescape(encodeURIComponent(str)); const rr_ = (v, a) => (v >>> a) | (v << (32 - a)); const max = 2 ** 32;
+  const H = [], K = []; let pc = 0; const comp = {};
+  for (let c = 2; pc < 64; c++){ if (!comp[c]){ for (let i = 0; i < 313; i += c) comp[i] = c; H[pc] = (Math.pow(c, .5) * max) | 0; K[pc++] = (Math.pow(c, 1 / 3) * max) | 0; } }
+  let msg = ascii + '\x80'; while (msg.length % 64 - 56) msg += '\x00';
+  const w = []; for (let i = 0; i < msg.length; i++) w[i >> 2] |= msg.charCodeAt(i) << ((3 - i) % 4) * 8;
+  const bl = ascii.length * 8; w[w.length] = (bl / max) | 0; w[w.length] = bl;
+  let hash = H.slice(0, 8);
+  for (let j = 0; j < w.length;){
+    const W = w.slice(j, j += 16), old = hash; hash = hash.slice(0, 8);
+    for (let i = 0; i < 64; i++){
+      const w15 = W[i - 15], w2 = W[i - 2], a = hash[0], e = hash[4];
+      const t1 = hash[7] + (rr_(e, 6) ^ rr_(e, 11) ^ rr_(e, 25)) + ((e & hash[5]) ^ (~e & hash[6])) + K[i]
+        + (W[i] = i < 16 ? W[i] : (W[i - 16] + (rr_(w15, 7) ^ rr_(w15, 18) ^ (w15 >>> 3)) + W[i - 7] + (rr_(w2, 17) ^ rr_(w2, 19) ^ (w2 >>> 10))) | 0);
+      const t2 = (rr_(a, 2) ^ rr_(a, 13) ^ rr_(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+      hash = [(t1 + t2) | 0].concat(hash); hash[4] = (hash[4] + t1) | 0;
+    }
+    for (let i = 0; i < 8; i++) hash[i] = (hash[i] + old[i]) | 0;
+  }
+  let out = ''; for (let i = 0; i < 8; i++) for (let j = 3; j + 1; j--){ const b = (hash[i] >> (j * 8)) & 255; out += (b < 16 ? '0' : '') + b.toString(16); }
+  return out;
+}
+
+/* ---------------- tipuri de competiții ---------------- */
+const TYPES = {
+  ucl: {name: 'Champions League', long: 'Format UEFA Champions League (faza ligii + eliminatorii)', color: '#3b6cf6', icon: 'star',
+    grad: 'linear-gradient(135deg,#0b1f6b,#1d4ed8 55%,#38bdf8)'},
+  wc: {name: 'Cupa Mondială', long: 'Format Cupa Mondială (grupe + eliminatorii)', color: '#e0a800', icon: 'globe',
+    grad: 'linear-gradient(135deg,#5a1a00,#c2410c 50%,#f5c542)'},
+  league: {name: 'Campionat 2 ligi', long: 'Campionat pe 2 divizii cu promovare, retrogradare și baraj', color: '#10b981', icon: 'layers',
+    grad: 'linear-gradient(135deg,#032b22,#047857 55%,#34d399)'}
+};
+const DEFAULTS = {
+  common: {ptsWin: 3, ptsDraw: 1, ptsLoss: 0, autoKO: true, showScorers: true},
+  ucl: {matchesPerTeam: 8, direct: 8, playoff: true, playoffLegs: 2, koLegs: 2, finalLegs: 1, pairDraw: true, tiebreak: 'ucl'},
+  wc: {groupSize: 4, groups: 0, advance: 2, thirds: -1, groupLegs: 1, koLegs: 1, finalLegs: 1, thirdPlace: true, tiebreak: 'h2h'},
+  league: {legs: 2, div1: 'Liga 1', div2: 'Liga 2', relegDirect: 2, relegPlayoff: 1, promoDirect: 2, promoPlayoff: 1, playoffLegs: 2, tiebreak: 'h2h'}
+};
+const TB_LABEL = {
+  ucl: 'UEFA: puncte, golaveraj, goluri marcate, goluri în deplasare, victorii, victorii în deplasare, puncte adversari, golaveraj adversari, goluri adversari',
+  h2h: 'Puncte, apoi meciurile directe (puncte, golaveraj, goluri), apoi golaveraj general, goluri marcate, victorii',
+  gd: 'Puncte, golaveraj general, goluri marcate, victorii, apoi meciurile directe'
+};
+
+/* ---------------- stare ---------------- */
+let DB = {admins: {}, comps: {}};
+const ui = {route: {}, mf: {}, tableView: 'all', statsTab: 'scorers', groupSel: '', divSel: 'd1', drafts: {}};
+const auth = {id: null, name: '', role: 'viewer', h: ''};
+try { const a = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); if (a && a.id) Object.assign(auth, a); } catch {}
+const isAdmin = () => !!(auth.id && DB.admins[auth.id] && DB.admins[auth.id].hash === auth.h);
+const isSuper = () => isAdmin() && DB.admins[auth.id].role === 'super';
+const C = () => DB.comps[ui.route.c] || null;
+const canEdit = c => isAdmin() && (!c || c.status !== 'incheiat');
+const ED = (c, h) => canEdit(c) ? h : '';
+
+/* ---------------- normalizare (Firebase nu păstrează liste goale / null) ---------------- */
+const arr = v => !v ? [] : Array.isArray(v) ? v.filter(x => x != null) : Object.keys(v).sort((a, b) => a - b).map(k => v[k]).filter(x => x != null);
+const obj = v => (v && typeof v === 'object') ? (Array.isArray(v) ? Object.fromEntries(v.filter(Boolean).map(x => [x.id, x])) : v) : {};
+function normC(c){
+  c.settings = {...DEFAULTS.common, ...DEFAULTS[c.type], ...(c.settings || {})};
+  c.teams = obj(c.teams); c.matches = obj(c.matches);
+  Object.values(c.teams).forEach(t => { t.deduct = +t.deduct || 0; });
+  Object.values(c.matches).forEach(m => {
+    m.sc = m.sc || {}; m.sc.h = arr(m.sc.h); m.sc.a = arr(m.sc.a);
+    m.played = !!m.played; m.hs = numOr(m.hs); m.as = numOr(m.as); m.ph = numOr(m.ph); m.pa = numOr(m.pa);
+  });
+  c.plan = arr(c.plan);
+  c.order = c.order || {};
+  Object.keys(c.order).forEach(k => c.order[k] = arr(c.order[k]));
+  c.groups = arr(c.groups);
+  if (c.ko){ c.ko.rounds = arr(c.ko.rounds).map(r => ({...r, ties: arr(r.ties)})); } else c.ko = null;
+  c.history = arr(c.history);
+  c.status = c.status === 'incheiat' ? 'incheiat' : 'activ';
+  return c;
+}
+
+/* ---------------- sincronizare ---------------- */
+let fdb = null;
+const Sync = {
+  mode: 'local', loaded: false, online: false, err: '',
+  init(){
+    try { if (window.firebase && firebase.initializeApp){ if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG); fdb = firebase.database(); this.mode = 'cloud'; } }
+    catch (e){ console.error(e); }
+    if (this.mode !== 'cloud') return this.initLocal();
+    fdb.ref('.info/connected').on('value', s => { this.online = !!s.val(); renderTop(); });
+    this.to = setTimeout(() => { if (!this.loaded){ this.err = 'Conexiunea la baza de date durează prea mult.'; render(); } }, 12000);
+    fdb.ref(DB_ROOT).on('value', snap => {
+      const v = snap.val() || {};
+      clearTimeout(this.to); this.err = '';
+      DB.admins = v.admins || {};
+      const comps = v.comps || {};
+      DB.comps = {}; Object.keys(comps).forEach(k => { if (comps[k]) DB.comps[k] = normC(comps[k]); });
+      this.loaded = true; softRender();
+    }, e => this.fail(e));
+  },
+  initLocal(){
+    this.mode = 'local';
+    try { const d = JSON.parse(localStorage.getItem(LOCAL_KEY) || 'null'); if (d){ DB.admins = d.admins || {}; DB.comps = {}; Object.values(d.comps || {}).forEach(c => DB.comps[c.id] = normC(c)); } } catch {}
+    this.loaded = true; render();
+  },
+  saveLocal(){ try { localStorage.setItem(LOCAL_KEY, JSON.stringify(DB)); } catch (e){ toast('Memoria browserului e plină – exportă un backup.', 'err'); } },
+  fail(e){
+    console.error(e); const m = String(e && (e.code || e.message) || e);
+    this.err = /permission/i.test(m) ? 'Baza de date a refuzat accesul (PERMISSION_DENIED). Adaugă în regulile Firebase nodurile „' + DB_ROOT + '” și „' + AUDIT_ROOT + '”.' : 'Eroare bază de date: ' + m;
+    toast(this.err, 'err'); if (!this.loaded) render();
+  },
+  // modificările se fac întâi în memorie (DB), apoi se persistă calea
+  set(path, val){
+    if (this.mode !== 'cloud'){ this.saveLocal(); return Promise.resolve(); }
+    return fdb.ref(DB_ROOT + '/' + path).set(val == null ? null : clone(val)).catch(e => this.fail(e));
+  },
+  upd(map){
+    if (this.mode !== 'cloud'){ this.saveLocal(); return Promise.resolve(); }
+    const o = {}; Object.keys(map).forEach(k => o[k] = map[k] == null ? null : clone(map[k]));
+    return fdb.ref(DB_ROOT).update(o).catch(e => this.fail(e));
+  },
+  comp(c){ c.updatedAt = Date.now(); return this.set('comps/' + c.id, c); },
+  match(c, m){ return this.set(`comps/${c.id}/matches/${m.id}`, m); },
+  matches(c, list, removed = []){ const o = {}; list.forEach(m => o[`comps/${c.id}/matches/${m.id}`] = m); removed.forEach(id => o[`comps/${c.id}/matches/${id}`] = null); return this.upd(o); },
+  team(c, t){ return this.set(`comps/${c.id}/teams/${t.id}`, t); },
+  audit(msg, c){
+    const e = {at: Date.now(), who: auth.name || '?', msg, comp: c ? c.name : ''};
+    if (this.mode === 'cloud') fdb.ref(AUDIT_ROOT).push(e).catch(() => {});
+    else { try { const l = JSON.parse(localStorage.getItem(LOCAL_KEY + '-audit') || '[]'); l.push(e); localStorage.setItem(LOCAL_KEY + '-audit', JSON.stringify(l.slice(-300))); } catch {} }
+  },
+  async readAudit(){
+    if (this.mode === 'cloud'){ const s = await fdb.ref(AUDIT_ROOT).limitToLast(200).once('value'); return Object.values(s.val() || {}).reverse(); }
+    try { return JSON.parse(localStorage.getItem(LOCAL_KEY + '-audit') || '[]').reverse(); } catch { return []; }
+  }
+};
+function softRender(){
+  const a = document.activeElement;
+  if (a && a.closest && (a.closest('#view') || a.closest('.md')) && /INPUT|SELECT|TEXTAREA/.test(a.tagName)){ ui.pending = true; renderTop(); return; }
+  if ($('.mb') && !ui.allowBg){ ui.pending = true; return; }
+  render();
+}
+document.addEventListener('focusout', () => setTimeout(() => { if (ui.pending && !$('.mb')){ const a = document.activeElement; if (!(a && /INPUT|SELECT|TEXTAREA/.test(a.tagName))){ ui.pending = false; render(); } } }, 250));
+
+/* =====================================================================
+   MOTOARE: echipe, meciuri, programare, clasamente, eliminatorii
+   ===================================================================== */
+const PALETTE = ['#3b82f6','#ef4444','#10b981','#f59e0b','#a855f7','#06b6d4','#ec4899','#84cc16','#f97316','#6366f1','#14b8a6','#eab308','#e11d48','#0ea5e9','#22c55e','#8b5cf6'];
+const teams = c => Object.values(c.teams).sort((a, b) => (a.created || 0) - (b.created || 0) || a.name.localeCompare(b.name));
+const TM = (c, id) => c && c.teams[id];
+const ms = c => Object.values(c.matches);
+const initials = n => { const w = String(n || '?').trim().split(/\s+/); return (w.length > 1 ? w[0][0] + w[1][0] : w[0].slice(0, 2)).toUpperCase(); };
+const shortName = t => t ? (t.short || t.name) : '—';
+function logoHTML(t, s = 28){
+  if (!t) return `<div class="logo lph" style="width:${s}px;height:${s}px;background:#1e293b;font-size:${Math.round(s * .36)}px;border-radius:${Math.round(s * .3)}px">?</div>`;
+  if (t.logo) return `<div class="logo" style="width:${s}px;height:${s}px;border-radius:${Math.round(s * .22)}px"><img src="${t.logo}" alt=""></div>`;
+  const col = t.color || '#3b82f6';
+  return `<div class="logo lph" style="width:${s}px;height:${s}px;border-radius:${Math.round(s * .3)}px;font-size:${Math.round(s * .38)}px;background:linear-gradient(135deg,${col},${col}99)">${esc(initials(t.name))}</div>`;
+}
+function compLogo(c, s = 40){
+  if (c && c.logo) return `<div class="logo" style="width:${s}px;height:${s}px;border-radius:${Math.round(s * .25)}px"><img src="${c.logo}" alt=""></div>`;
+  const ty = TYPES[c ? c.type : 'ucl'];
+  return `<div class="logo" style="width:${s}px;height:${s}px;border-radius:${Math.round(s * .28)}px;background:${ty.grad}">${ic(ty.icon, Math.round(s * .52)).replace('class="i"', 'class="i" style="stroke:#fff;width:' + Math.round(s * .52) + 'px;height:' + Math.round(s * .52) + 'px"')}</div>`;
+}
+function teamHTML(c, id, o = {}){
+  const t = TM(c, id); const s = o.s || 28;
+  if (!t) return `<div class="team">${logoHTML(null, s)}<div class="nm"><b class="dim">${esc(o.ph || 'De stabilit')}</b></div></div>`;
+  const sub = o.sub === false ? '' : (t.manager ? `<small>${esc(t.manager)}</small>` : '');
+  return `<div class="team ${o.link === false ? '' : 'clk'}" ${o.link === false ? '' : `data-act="openTeam" data-id="${t.id}"`}>${o.nologo ? '' : logoHTML(t, s)}<div class="nm"><b>${esc(o.short ? shortName(t) : t.name)}</b>${sub}</div></div>`;
+}
+function newTeam(c, f){
+  const n = Object.keys(c.teams).length;
+  const t = {id: uid(), created: Date.now() + n, name: (f.name || 'Echipă').trim(), short: (f.short || '').trim(), manager: (f.manager || '').trim(),
+    logo: f.logo || '', color: f.color || PALETTE[n % PALETTE.length], deduct: 0};
+  if (f.div) t.div = f.div; if (f.pot) t.pot = f.pot; if (f.group) t.group = f.group;
+  c.teams[t.id] = t; return t;
+}
+function newMatch(c, f){
+  const m = {id: uid(), created: Date.now() + Object.keys(c.matches).length, played: false, hs: null, as: null, ph: null, pa: null, sc: {h: [], a: []}, date: '', ...f};
+  c.matches[m.id] = m; return m;
+}
+const mOrder = (a, b) => (a.round || 0) - (b.round || 0) || (a.leg || 0) - (b.leg || 0) || String(a.date || '').localeCompare(String(b.date || '')) || (a.created || 0) - (b.created || 0);
+const pk = (a, b) => a < b ? a + '|' + b : b + '|' + a;
+
+/* ---------------- programare: round-robin (Berger) ---------------- */
+function berger(ids){
+  const a = [...ids]; if (a.length % 2) a.push(null);
+  const n = a.length, R = [];
+  for (let r = 0; r < n - 1; r++){
+    const ps = [];
+    for (let i = 0; i < n / 2; i++){
+      const x = a[i], y = a[n - 1 - i]; if (!x || !y) continue;
+      const flip = i === 0 ? r % 2 === 1 : (i + r) % 2 === 1;
+      ps.push(flip ? [y, x] : [x, y]);
+    }
+    R.push(ps); a.splice(1, 0, a.pop());
+  }
+  return R;
+}
+// meciurile rămase de programat, grupate în etape (respectă ordinea Berger; acceptă echipe adăugate oricând)
+function pendingRounds(order, legs, existing){
+  const base = berger(order), seq = [];
+  for (let l = 0; l < legs; l++) base.forEach(rd => rd.forEach(([h, a]) => seq.push(l % 2 ? [a, h] : [h, a])));
+  const used = {}, homes = {};
+  existing.forEach(m => { const k = pk(m.home, m.away); (used[k] = used[k] || []).push(m.home); (homes[k] = homes[k] || []).push(m.home); });
+  const rem = [];
+  for (let [h, a] of seq){
+    const k = pk(h, a), u = used[k];
+    if (u && u.length){ const i = u.indexOf(h); u.splice(i >= 0 ? i : 0, 1); continue; }
+    const hs = homes[k] || []; const hc = hs.filter(x => x === h).length, ac = hs.length - hc;
+    if (hc > ac) [h, a] = [a, h];
+    (homes[k] = homes[k] || []).push(h);
+    rem.push([h, a]);
+  }
+  const rounds = []; let L = rem;
+  while (L.length){
+    const busy = new Set(), rd = [], rest = [];
+    for (const p of L){ if (busy.has(p[0]) || busy.has(p[1])) rest.push(p); else { rd.push(p); busy.add(p[0]); busy.add(p[1]); } }
+    rounds.push(rd); L = rest;
+  }
+  return rounds;
+}
+function ensureOrder(c, key, ids){
+  const cur = (c.order[key] || []).filter(id => ids.includes(id));
+  const add = shuffle(ids.filter(id => !cur.includes(id)));
+  c.order[key] = [...cur, ...add]; return c.order[key];
+}
+function poolsOf(c){
+  if (c.type === 'league') return [
+    {key: 'd1', name: c.settings.div1, ids: teams(c).filter(t => t.div === 'd1').map(t => t.id), legs: c.settings.legs, f: m => m.stage === 'league' && m.div === 'd1', extra: {stage: 'league', div: 'd1'}},
+    {key: 'd2', name: c.settings.div2, ids: teams(c).filter(t => t.div === 'd2').map(t => t.id), legs: c.settings.legs, f: m => m.stage === 'league' && m.div === 'd2', extra: {stage: 'league', div: 'd2'}}];
+  if (c.type === 'wc') return c.groups.map(g => ({key: 'g' + g.id, name: g.name, gid: g.id, ids: teams(c).filter(t => t.group === g.id).map(t => t.id), legs: c.settings.groupLegs,
+    f: m => m.stage === 'group' && m.group === g.id, extra: {stage: 'group', group: g.id}}));
+  return [];
+}
+function poolPending(c, p){
+  if (p.ids.length < 2) return [];
+  const order = (c.order[p.key] || []).filter(id => p.ids.includes(id));
+  const full = [...order, ...p.ids.filter(id => !order.includes(id))];
+  const ex = ms(c).filter(p.f).filter(m => p.ids.includes(m.home) && p.ids.includes(m.away));
+  return pendingRounds(full, p.legs, ex);
+}
+// generează etapa următoare (all=false) sau toate etapele rămase
+function genPool(c, p, all){
+  if (p.ids.length < 2) return [];
+  const order = ensureOrder(c, p.key, p.ids);
+  const ex = ms(c).filter(p.f);
+  const rounds = pendingRounds(order, p.legs, ex.filter(m => p.ids.includes(m.home) && p.ids.includes(m.away)));
+  const r0 = Math.max(0, ...ex.map(m => m.round || 0));
+  const take = all ? rounds : rounds.slice(0, 1);
+  const out = [];
+  take.forEach((rd, i) => rd.forEach(([h, a]) => out.push(newMatch(c, {...p.extra, round: r0 + i + 1, home: h, away: a}))));
+  return out;
+}
+
+/* ---------------- UCL: tragerea fazei ligii ---------------- */
+function colorEdges(edges, ids, K, attempts = 250){
+  for (let att = 0; att < attempts; att++){
+    const at = {}; ids.forEach(id => at[id] = new Array(K).fill(-1));
+    const col = new Array(edges.length).fill(-1); let ok = true;
+    for (const e of shuffle(edges.map((_, i) => i))){
+      const [u, v] = edges[e]; let cc = -1;
+      for (let k = 0; k < K; k++) if (at[u][k] < 0 && at[v][k] < 0){ cc = k; break; }
+      if (cc < 0){
+        const fu = [], fv = []; for (let k = 0; k < K; k++){ if (at[u][k] < 0) fu.push(k); if (at[v][k] < 0) fv.push(k); }
+        outer: for (const a of shuffle(fu)) for (const b of shuffle(fv)){
+          const path = []; let x = v, cur = a, hit = false;
+          while (true){ const ed = at[x][cur]; if (ed < 0) break; path.push(ed); const [p, q] = edges[ed]; const y = p === x ? q : p; if (y === u){ hit = true; break; } x = y; cur = cur === a ? b : a; if (path.length > edges.length) { hit = true; break; } }
+          if (hit) continue;
+          path.forEach(ed => { const [p, q] = edges[ed]; at[p][col[ed]] = -1; at[q][col[ed]] = -1; });
+          path.forEach(ed => { const nc = col[ed] === a ? b : a; col[ed] = nc; const [p, q] = edges[ed]; at[p][nc] = ed; at[q][nc] = ed; });
+          if (at[u][a] < 0 && at[v][a] < 0){ cc = a; break outer; }
+        }
+      }
+      if (cc < 0){ ok = false; break; }
+      col[e] = cc; at[u][cc] = e; at[v][cc] = e;
+    }
+    if (ok) return col;
+  }
+  return null;
+}
+function uclDraw(c){
+  const M = c.settings.matchesPerTeam, ids = teams(c).map(t => t.id), N = ids.length;
+  if (M % 2) throw new Error('Numărul de meciuri pe echipă trebuie să fie par.');
+  if (N < M + 1) throw new Error(`Pentru ${M} meciuri pe echipă sunt necesare cel puțin ${M + 1} echipe (acum: ${N}). Scade numărul de meciuri din Regulament.`);
+  const P = M / 2, S = N / P;
+  const pots = Array.from({length: P}, (_, i) => shuffle(teams(c).filter(t => +t.pot === i + 1).map(t => t.id)));
+  const potOK = Number.isInteger(S) && S >= 3 && pots.every(p => p.length === S);
+  let edges = [], mode;
+  if (potOK){
+    mode = 'urne';
+    for (let i = 0; i < P; i++){ const A = pots[i]; for (let k = 0; k < S; k++) edges.push([A[k], A[(k + 1) % S]]); }
+    for (let i = 0; i < P; i++) for (let j = i + 1; j < P; j++){
+      const A = pots[i], B = pots[j], sg = shuffle([...Array(S).keys()]), sh = 1 + rnd(S - 1);
+      for (let k = 0; k < S; k++){ edges.push([A[k], B[sg[k]]]); edges.push([B[sg[(k + sh) % S]], A[k]]); }
+    }
+  } else {
+    mode = 'echilibrat';
+    const o = shuffle(ids);
+    for (let i = 0; i < N; i++) for (let d = 1; d <= P; d++) edges.push([o[i], o[(i + d) % N]]);
+  }
+  const E = edges.length, Kmin = Math.max(M, Math.ceil(E / Math.floor(N / 2)));
+  let col = null, K = Kmin;
+  for (; K <= Kmin + 6 && !col; K++) col = colorEdges(edges, ids, K, K === Kmin ? 300 : 120);
+  if (!col){ col = []; const busy = {}; edges.forEach((e, i) => { let k = 0; while ((busy[k] || new Set()).has(e[0]) || (busy[k] || new Set()).has(e[1])) k++; (busy[k] = busy[k] || new Set()).add(e[0]); busy[k].add(e[1]); col[i] = k; }); }
+  // renumerotare etape în ordinea 1..K
+  const used = [...new Set(col)].sort((a, b) => a - b); const map = {}; used.forEach((k, i) => map[k] = i + 1);
+  c.plan = edges.map((e, i) => ({h: e[0], a: e[1], r: map[col[i]]})).sort((a, b) => a.r - b.r);
+  c.drawMode = mode;
+  return {mode, rounds: used.length};
+}
+function uclPendingPlan(c){
+  const have = new Set(ms(c).filter(m => m.stage === 'league').map(m => m.home + '>' + m.away));
+  return c.plan.filter(p => !have.has(p.h + '>' + p.a) && c.teams[p.h] && c.teams[p.a]);
+}
+function uclGen(c, all){
+  const pend = uclPendingPlan(c); if (!pend.length) return [];
+  const r = Math.min(...pend.map(p => p.r));
+  return pend.filter(p => all || p.r === r).map(p => newMatch(c, {stage: 'league', round: p.r, home: p.h, away: p.a}));
+}
+function autoPots(c, mode){
+  const n = c.type === 'ucl' ? c.settings.matchesPerTeam / 2 : c.settings.groupSize;
+  const list = mode === 'random' ? shuffle(teams(c)) : teams(c).sort((a, b) => (a.pot || 99) - (b.pot || 99) || (a.created || 0) - (b.created || 0));
+  const per = Math.ceil(list.length / n);
+  list.forEach((t, i) => t.pot = Math.min(n, Math.floor(i / per) + 1));
+}
+
+/* ---------------- Cupa Mondială: tragerea grupelor ---------------- */
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+function wcGroupCount(c){ const N = Object.keys(c.teams).length; return c.settings.groups > 0 ? c.settings.groups : Math.max(1, Math.ceil(N / c.settings.groupSize)); }
+function wcDraw(c){
+  const G = wcGroupCount(c);
+  c.groups = Array.from({length: G}, (_, i) => ({id: LETTERS[i] || ('G' + (i + 1)), name: 'Grupa ' + (LETTERS[i] || (i + 1))}));
+  const size = {}; c.groups.forEach(g => size[g.id] = 0);
+  const all = teams(c); all.forEach(t => delete t.group);
+  const potNums = [...new Set(all.map(t => +t.pot || 99))].sort((a, b) => a - b);
+  potNums.forEach(p => {
+    const list = shuffle(all.filter(t => (+t.pot || 99) === p));
+    list.forEach(t => {
+      const min = Math.min(...c.groups.map(g => size[g.id]));
+      const cand = shuffle(c.groups.filter(g => size[g.id] === min));
+      t.group = cand[0].id; size[t.group]++;
+    });
+  });
+  c.order = {};
+}
+function wcAssignNew(c, t){
+  if (!c.groups.length) return;
+  const cnt = g => teams(c).filter(x => x.group === g.id && x.id !== t.id).length;
+  const min = Math.min(...c.groups.map(cnt)); t.group = shuffle(c.groups.filter(g => cnt(g) === min))[0].id;
+}
+
+/* ---------------- clasamente ---------------- */
+function ptsOf(c, gf, ga){ const s = c.settings; return gf > ga ? +s.ptsWin : gf === ga ? +s.ptsDraw : +s.ptsLoss; }
+function table(c, ids, matches, o = {}){
+  const venue = o.venue || 'all', mode = o.mode || c.settings.tiebreak || 'gd';
+  const R = {}; ids.forEach(id => R[id] = {id, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0, aGF: 0, aW: 0, cs: 0, form: [], opp: []});
+  const pl = matches.filter(m => m.played && R[m.home] && R[m.away]).sort(mOrder);
+  const side = (r, gf, ga, away, opp) => {
+    r.P++; r.GF += gf; r.GA += ga; r.Pts += ptsOf(c, gf, ga); r.opp.push(opp);
+    if (gf > ga){ r.W++; r.form.push('W'); if (away) r.aW++; } else if (gf === ga){ r.D++; r.form.push('D'); } else { r.L++; r.form.push('L'); }
+    if (away) r.aGF += gf; if (ga === 0) r.cs++;
+  };
+  pl.forEach(m => { if (venue !== 'away') side(R[m.home], m.hs, m.as, false, m.away); if (venue !== 'home') side(R[m.away], m.as, m.hs, true, m.home); });
+  const rows = Object.values(R);
+  rows.forEach(r => { r.GD = r.GF - r.GA; if (venue === 'all'){ r.ded = (c.teams[r.id] && c.teams[r.id].deduct) || 0; r.Pts -= r.ded; } r.form = r.form.slice(-5); });
+  const nm = (a, b) => (c.teams[a.id]?.name || '').localeCompare(c.teams[b.id]?.name || '');
+  const by = keys => (a, b) => { for (const k of keys){ const d = (b[k] || 0) - (a[k] || 0); if (d) return d; } return 0; };
+  if (mode === 'ucl'){
+    rows.forEach(r => { r.oPts = sum(r.opp, id => R[id]?.Pts); r.oGD = sum(r.opp, id => R[id]?.GD); r.oGF = sum(r.opp, id => R[id]?.GF); });
+    rows.sort((a, b) => by(['Pts', 'GD', 'GF', 'aGF', 'W', 'aW', 'oPts', 'oGD', 'oGF'])(a, b) || nm(a, b));
+  } else if (mode === 'h2h'){
+    rows.sort(by(['Pts']));
+    const out = []; let i = 0;
+    while (i < rows.length){
+      let j = i; while (j < rows.length && rows[j].Pts === rows[i].Pts) j++;
+      const blk = rows.slice(i, j);
+      if (blk.length > 1){
+        const set = new Set(blk.map(r => r.id)); const H = {}; blk.forEach(r => H[r.id] = {p: 0, gd: 0, gf: 0});
+        pl.filter(m => set.has(m.home) && set.has(m.away)).forEach(m => {
+          H[m.home].p += ptsOf(c, m.hs, m.as); H[m.away].p += ptsOf(c, m.as, m.hs);
+          H[m.home].gd += m.hs - m.as; H[m.away].gd += m.as - m.hs; H[m.home].gf += m.hs; H[m.away].gf += m.as; });
+        blk.forEach(r => { r.hP = H[r.id].p; r.hGD = H[r.id].gd; r.hGF = H[r.id].gf; });
+        blk.sort((a, b) => by(['hP', 'hGD', 'hGF', 'GD', 'GF', 'W'])(a, b) || nm(a, b));
+      }
+      out.push(...blk); i = j;
+    }
+    rows.splice(0, rows.length, ...out);
+  } else rows.sort((a, b) => by(['Pts', 'GD', 'GF', 'W'])(a, b) || nm(a, b));
+  rows.forEach((r, i) => r.pos = i + 1);
+  return rows;
+}
+const leaguePhase = c => ms(c).filter(m => m.stage === 'league');
+function uclTable(c, venue){ return table(c, teams(c).map(t => t.id), leaguePhase(c), {venue}); }
+function divTable(c, d, venue){ return table(c, teams(c).filter(t => t.div === d).map(t => t.id), ms(c).filter(m => m.stage === 'league' && m.div === d), {venue}); }
+function groupTable(c, gid, venue){ return table(c, teams(c).filter(t => t.group === gid).map(t => t.id), ms(c).filter(m => m.stage === 'group' && m.group === gid), {venue}); }
+
+/* ---------------- progres ---------------- */
+function phaseProgress(c){
+  let total = 0, played = 0;
+  if (c.type === 'ucl'){ const lm = leaguePhase(c); total = lm.length + uclPendingPlan(c).length; played = lm.filter(m => m.played).length; }
+  else poolsOf(c).forEach(p => { const ex = ms(c).filter(p.f); total += ex.length + sum(poolPending(c, p), r => r.length); played += ex.filter(m => m.played).length; });
+  return {total, played, done: total > 0 && total === played};
+}
+
+/* ---------------- eliminatorii ---------------- */
+function seedOrder(n){ let o = [1]; while (o.length < n){ const m = o.length * 2; o = o.flatMap(s => [s, m + 1 - s]); } return o; }
+function roundName(n, third){
+  if (third) return 'Finala mică';
+  return ({2: 'Finala', 4: 'Semifinale', 8: 'Sferturi de finală', 16: 'Optimi de finală', 32: 'Șaisprezecimi de finală', 64: 'Runda de 64', 128: 'Runda de 128'})[n] || ('Runda de ' + n);
+}
+function pairSwap(c, list){ list = [...list]; if (c.settings.pairDraw) for (let i = 0; i + 1 < list.length; i += 2) if (rnd(2)) [list[i], list[i + 1]] = [list[i + 1], list[i]]; return list; }
+const slotT = id => id ? {t: id} : {bye: true};
+function chainRounds(c, first, size){
+  const rounds = [first]; let prev = first, n = size / 2;
+  while (prev.ties.length > 1){
+    const ties = []; for (let i = 0; i < prev.ties.length; i += 2) ties.push({id: uid(), a: {w: prev.ties[i].id}, b: {w: prev.ties[i + 1].id}});
+    const isFinal = ties.length === 1;
+    const r = {key: 'r' + n, name: roundName(n), legs: isFinal ? +c.settings.finalLegs : +c.settings.koLegs, ties};
+    if (isFinal && c.type === 'wc' && c.settings.thirdPlace && prev.ties.length === 2){
+      rounds.push({key: 'third', name: roundName(0, true), third: true, legs: 1, ties: [{id: uid(), a: {l: prev.ties[0].id}, b: {l: prev.ties[1].id}}]});
+    }
+    rounds.push(r); prev = r; n = n / 2;
+  }
+  rounds.forEach(r => r.ties.forEach(t => t.legs = r.legs));
+  return rounds;
+}
+function bracketFromSeeds(c, seeds, avoid){
+  const K = Math.max(2, nextPow2(seeds.length)); const S = [...seeds]; while (S.length < K) S.push(null);
+  const so = seedOrder(K); const pairs = [];
+  for (let i = 0; i < K; i += 2) pairs.push([S[so[i] - 1], S[so[i + 1] - 1]]);
+  if (avoid){
+    for (let pass = 0; pass < 3; pass++) pairs.forEach((p, i) => {
+      if (!p[0] || !p[1] || !avoid(p[0], p[1])) return;
+      for (let j = 0; j < pairs.length; j++){ const q = pairs[j]; if (j === i || !q[1] || !q[0]) continue;
+        if (!avoid(p[0], q[1]) && !avoid(q[0], p[1])){ [p[1], q[1]] = [q[1], p[1]]; break; } }
+    });
+  }
+  const first = {key: 'r' + K, name: roundName(K), legs: K === 2 ? +c.settings.finalLegs : +c.settings.koLegs, ties: pairs.map(([a, b]) => ({id: uid(), a: slotT(a), b: slotT(b)}))};
+  return chainRounds(c, first, K);
+}
+function uclBuildKO(c){
+  const D = +c.settings.direct, st = uclTable(c).map(r => r.id);
+  if (!isPow2(D)) throw new Error('Numărul de echipe calificate direct trebuie să fie putere a lui 2 (2, 4, 8, 16).');
+  if (c.settings.playoff){
+    if (st.length < 3 * D) throw new Error(`Faza eliminatorie cu play-off necesită ${3 * D} echipe (locurile 1–${3 * D}). Ai ${st.length}.`);
+    const top = pairSwap(c, st.slice(0, D)), sd = pairSwap(c, st.slice(D, 2 * D)), un = pairSwap(c, st.slice(2 * D, 3 * D));
+    const order = seedOrder(D); const po = [], main = [];
+    order.forEach(s => {
+      const pt = {id: uid(), a: {t: sd[D - s]}, b: {t: un[s - 1]}}; po.push(pt);
+      main.push({id: uid(), a: {t: top[s - 1]}, b: {w: pt.id}});
+    });
+    const size = 2 * D;
+    const r0 = {key: 'po', name: 'Play-off eliminatoriu', legs: +c.settings.playoffLegs, ties: po, playoff: true};
+    const r1 = {key: 'r' + size, name: roundName(size), legs: size === 2 ? +c.settings.finalLegs : +c.settings.koLegs, ties: main};
+    const rounds = chainRounds(c, r1, size); r0.ties.forEach(t => t.legs = r0.legs);
+    c.ko = {rounds: [r0, ...rounds], built: Date.now()};
+  } else {
+    if (st.length < D) throw new Error(`Sunt necesare cel puțin ${D} echipe.`);
+    c.ko = {rounds: bracketFromSeeds(c, st.slice(0, D)), built: Date.now()};
+  }
+}
+function wcThirds(c){
+  const G = c.groups.length, adv = +c.settings.advance;
+  if (+c.settings.thirds >= 0) return Math.min(G, +c.settings.thirds);
+  const q = G * adv, p = nextPow2(q); return Math.min(G, p - q);
+}
+function wcQualifiers(c){
+  const adv = +c.settings.advance, tabs = {}; c.groups.forEach(g => tabs[g.id] = groupTable(c, g.id));
+  const rank = rows => rows.sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF || b.W - a.W);
+  const seeds = [];
+  for (let p = 0; p < adv; p++) seeds.push(...rank(c.groups.map(g => tabs[g.id][p] && {...tabs[g.id][p], grp: g.id, place: p + 1}).filter(Boolean)));
+  const nT = wcThirds(c);
+  const thirds = rank(c.groups.map(g => tabs[g.id][adv] && {...tabs[g.id][adv], grp: g.id, place: adv + 1}).filter(Boolean));
+  thirds.forEach((r, i) => r.q = i < nT);
+  seeds.push(...thirds.slice(0, nT));
+  return {seeds, thirds, tabs};
+}
+function wcBuildKO(c){
+  const {seeds} = wcQualifiers(c);
+  if (seeds.length < 2) throw new Error('Nu sunt destule echipe calificate.');
+  const grp = {}; seeds.forEach(s => grp[s.id] = s.grp);
+  c.ko = {rounds: bracketFromSeeds(c, seeds.map(s => s.id), (a, b) => grp[a] === grp[b]), built: Date.now()};
+}
+function leagueBuildPO(c){
+  const s = c.settings, t1 = divTable(c, 'd1'), t2 = divTable(c, 'd2');
+  const k = Math.min(+s.relegPlayoff, +s.promoPlayoff);
+  if (!k) throw new Error('Regulamentul nu prevede baraj.');
+  const ties = [];
+  for (let i = 0; i < k; i++){
+    const A = t1[t1.length - +s.relegDirect - 1 - i], B = t2[+s.promoDirect + i];
+    if (!A || !B) throw new Error('Nu sunt destule echipe pentru baraj.');
+    ties.push({id: uid(), a: {t: A.id}, b: {t: B.id}, legs: +s.playoffLegs});
+  }
+  c.ko = {rounds: [{key: 'baraj', name: 'Baraj promovare / menținere', legs: +s.playoffLegs, ties}], built: Date.now()};
+}
+function allTies(c){ return c.ko ? c.ko.rounds.flatMap(r => r.ties.map(t => ({...t, _r: r}))) : []; }
+function findTie(c, id){ if (!c.ko) return null; for (const r of c.ko.rounds) for (const t of r.ties) if (t.id === id) return {tie: t, round: r}; return null; }
+function slotTeam(c, s, depth = 0){
+  if (!s || depth > 20) return null; if (s.t) return c.teams[s.t] ? s.t : null;
+  if (s.w || s.l){ const f = findTie(c, s.w || s.l); if (!f) return null; const st = tieState(c, f.tie, depth + 1); return s.w ? st.winner : st.loser; }
+  return null;
+}
+function tieState(c, tie, depth = 0){
+  const bye = !!((tie.a && tie.a.bye) || (tie.b && tie.b.bye));
+  const A = slotTeam(c, tie.a, depth), B = slotTeam(c, tie.b, depth);
+  const list = ms(c).filter(m => m.tie === tie.id).sort((a, b) => (a.leg || 0) - (b.leg || 0));
+  const st = {A, B, ga: 0, gb: 0, pa: null, pb: null, ms: list, bye, winner: null, loser: null, started: false, done: false};
+  if (bye){ st.winner = A || B; st.done = !!st.winner; return st; }
+  const legs = +tie.legs || 1;
+  list.forEach(m => { if (!m.played) return; st.started = true;
+    if (m.home === A && m.away === B){ st.ga += m.hs; st.gb += m.as; } else if (m.home === B && m.away === A){ st.ga += m.as; st.gb += m.hs; } });
+  const all = A && B && list.length >= legs && list.slice(0, legs).every(m => m.played);
+  const last = list[legs - 1];
+  if (last && last.played && last.ph != null && last.pa != null){ if (last.home === A){ st.pa = last.ph; st.pb = last.pa; } else { st.pa = last.pa; st.pb = last.ph; } }
+  if (tie.manual && (tie.manual === A || tie.manual === B)) st.winner = tie.manual;
+  else if (all){
+    if (st.ga !== st.gb) st.winner = st.ga > st.gb ? A : B;
+    else if (st.pa != null && st.pa !== st.pb) st.winner = st.pa > st.pb ? A : B;
+    else st.needPens = true;
+  }
+  if (st.winner){ st.loser = st.winner === A ? B : A; st.done = true; }
+  return st;
+}
+// creează / actualizează meciurile eliminatorii pentru dublele cu ambele echipe cunoscute
+function ensureKO(c){
+  const created = [], changed = [], removed = [];
+  if (!c.ko) return {created, changed, removed};
+  const stage = c.type === 'league' ? 'playoff' : 'ko';
+  c.ko.rounds.forEach((r, ri) => r.ties.forEach(tie => {
+    const st = tieState(c, tie);
+    if (st.bye) return;
+    const legs = +tie.legs || 1;
+    if (!st.A || !st.B){ st.ms.filter(m => !m.played).forEach(m => { delete c.matches[m.id]; removed.push(m.id); }); return; }
+    for (let leg = 1; leg <= legs; leg++){
+      const home = legs === 2 ? (leg === 1 ? st.B : st.A) : st.A, away = home === st.A ? st.B : st.A;
+      const m = st.ms.find(x => (x.leg || 1) === leg);
+      const lbl = r.name + (legs === 2 ? ` · manșa ${leg}` : '');
+      if (!m) created.push(newMatch(c, {stage, tie: tie.id, leg, round: ri + 1, rlabel: lbl, home, away, neutral: r.key === 'r2' && legs === 1}));
+      else if (!m.played && (m.home !== home || m.away !== away)){ m.home = home; m.away = away; changed.push(m); }
+    }
+  }));
+  return {created, changed, removed};
+}
+function koChampion(c){
+  if (!c.ko) return null; const fin = c.ko.rounds.filter(r => !r.third && !r.playoff).slice(-1)[0];
+  if (!fin || fin.ties.length !== 1 || c.type === 'league') return null;
+  return tieState(c, fin.ties[0]).winner;
+}
+
+/* ---------------- statistici ---------------- */
+function scorerList(c, filter = () => true){
+  const S = {};
+  ms(c).filter(m => m.played && filter(m)).forEach(m => {
+    [['h', m.home], ['a', m.away]].forEach(([k, tid]) => (m.sc[k] || []).forEach(s => {
+      const name = String(s.n || '').trim(); if (!name) return;
+      const key = tid + '|' + name.toLowerCase();
+      S[key] = S[key] || {name, tid, g: 0, m: new Set()}; S[key].g += (+s.g || 1); S[key].m.add(m.id);
+    }));
+  });
+  return Object.values(S).map(s => ({...s, mp: s.m.size})).sort((a, b) => b.g - a.g || a.mp - b.mp || a.name.localeCompare(b.name));
+}
+function compStats(c){
+  const pl = ms(c).filter(m => m.played);
+  const goals = sum(pl, m => m.hs + m.as);
+  const st = {played: pl.length, goals, avg: pl.length ? goals / pl.length : 0,
+    homeW: pl.filter(m => m.hs > m.as).length, draws: pl.filter(m => m.hs === m.as).length, awayW: pl.filter(m => m.hs < m.as).length};
+  st.all = table(c, teams(c).map(t => t.id), pl, {mode: 'gd'});
+  st.biggest = [...pl].sort((a, b) => Math.abs(b.hs - b.as) - Math.abs(a.hs - a.as) || (b.hs + b.as) - (a.hs + a.as)).slice(0, 6);
+  st.highest = [...pl].sort((a, b) => (b.hs + b.as) - (a.hs + a.as) || mOrder(a, b)).slice(0, 6);
+  // serii
+  const streak = {};
+  teams(c).forEach(t => {
+    const list = pl.filter(m => m.home === t.id || m.away === t.id).sort(mOrder);
+    let un = 0, bestUn = 0, w = 0, bestW = 0;
+    list.forEach(m => { const gf = m.home === t.id ? m.hs : m.as, ga = m.home === t.id ? m.as : m.hs;
+      if (gf >= ga){ un++; bestUn = Math.max(bestUn, un); } else un = 0;
+      if (gf > ga){ w++; bestW = Math.max(bestW, w); } else w = 0; });
+    streak[t.id] = {bestUn, bestW, curUn: un, curW: w};
+  });
+  st.streak = streak;
+  return st;
+}
+
+/* =====================================================================
+   INTERFAȚĂ: cadru, rute, vizualizări
+   ===================================================================== */
+function parseRoute(){
+  const h = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  if (h[0] === 'c' && h[1]) return {c: h[1], v: h[2] || 'overview', id: h[3] || null};
+  if (h[0] === 'admin') return {v: 'admin'};
+  return {v: 'home'};
+}
+const go = (path) => { location.hash = '#/' + path; };
+const cpath = (c, v, id) => `c/${c.id}/${v}${id ? '/' + id : ''}`;
+window.addEventListener('hashchange', () => { document.body.classList.remove('menu'); const prev = ui.route.c; ui.route = parseRoute(); if (prev !== ui.route.c) ui.mf = {}; render(); window.scrollTo(0, 0); });
+
+function accent(c){
+  const col = c ? (c.color || TYPES[c.type].color) : '#3b82f6';
+  document.documentElement.style.setProperty('--acc', col);
+  document.documentElement.style.setProperty('--accRGB', hexRGB(col));
+}
+function navDefs(c){
+  const t = c.type;
+  return [
+    ['overview', 'grid', 'Prezentare'],
+    ['teams', 'users', 'Echipe'],
+    ['matches', 'cal', 'Meciuri'],
+    ['table', 'table', t === 'ucl' ? 'Faza ligii' : t === 'wc' ? 'Grupe' : 'Clasamente'],
+    ['ko', 'trophy', t === 'league' ? 'Baraj & sezon' : 'Eliminatorii'],
+    ['stats', 'chart', 'Statistici'],
+    ['rules', 'cog', isAdmin() ? 'Regulament & setări' : 'Regulament']
+  ];
+}
+function renderSide(){
+  const c = C(), v = ui.route.v;
+  let h = `<div class="brand" data-act="nav" data-to="">${'<div class="lg">' + ic('ball') + '</div>'}<div><b>FC MOBILE</b><small>Manager competiții</small></div></div>`;
+  if (c){
+    h += `<div class="cbox" data-act="nav" data-to="">${compLogo(c, 38)}<div class="t"><b>${esc(c.name)}</b><small>${esc(TYPES[c.type].name)} · ${esc(c.season || '')}</small></div>${ic('swap', 16)}</div>`;
+    h += `<div class="navlbl">Competiție</div><nav class="nav">${navDefs(c).map(([k, i, l]) => `<button class="${v === k || (v === 'team' && k === 'teams') ? 'on' : ''}" data-act="nav" data-to="${cpath(c, k)}">${ic(i)}${l}</button>`).join('')}</nav>`;
+  }
+  h += `<div class="navlbl">General</div><nav class="nav">
+    <button class="${v === 'home' ? 'on' : ''}" data-act="nav" data-to="">${ic('home')}Toate competițiile</button>
+    ${isAdmin() ? `<button class="${v === 'admin' ? 'on' : ''}" data-act="nav" data-to="admin">${ic('shield')}Administrare</button>` : ''}
+  </nav>`;
+  h += `<div class="side-foot">${isAdmin()
+    ? `<div class="userbox"><div class="logo lph" style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc2));font-size:13px">${esc(initials(auth.name))}</div><div class="t"><b>${esc(auth.name)}</b><small>${isSuper() ? 'Administrator principal' : 'Administrator'}</small></div><button class="ib" title="Deconectare" data-act="logout">${ic('logout')}</button></div>`
+    : `<button class="btn" data-act="login">${ic('lock')}Autentificare admin</button>`}
+    <div class="dim small" style="padding:0 6px">v${APP_VERSION} · ${Sync.mode === 'cloud' ? 'Firebase' : 'mod local'}</div></div>`;
+  $('#sidebar').innerHTML = h;
+}
+function renderTop(){
+  const c = C(), v = ui.route.v;
+  let title = 'Competiții', sub = 'Turnee FC Mobile';
+  if (v === 'admin'){ title = 'Administrare'; sub = 'Conturi, backup, jurnal'; }
+  else if (c){ const n = navDefs(c).find(x => x[0] === v); title = v === 'team' ? (TM(c, ui.route.id)?.name || 'Echipă') : (n ? n[2] : c.name); sub = c.name + (c.season ? ' · ' + c.season : ''); }
+  const cls = Sync.mode !== 'cloud' ? '' : Sync.err ? 'bad' : Sync.online ? 'ok' : '';
+  const lbl = Sync.mode !== 'cloud' ? 'Mod local' : Sync.err ? 'Eroare' : Sync.online ? 'Sincronizat live' : 'Se conectează…';
+  $('#topbar').innerHTML = `<button class="ib" id="menuBtn" data-act="menu">${ic('menu')}</button>
+    <div style="min-width:0"><h1>${esc(title)}</h1><div class="sub">${esc(sub)}</div></div><span class="sp"></span>
+    <span class="sync ${cls}"><i></i><span class="hide-sm">${lbl}</span></span>
+    ${!isAdmin() ? `<button class="btn sm" data-act="login">${ic('lock')}<span class="hide-sm">Admin</span></button>` : ''}`;
+}
+function render(){
+  ui.route = parseRoute();
+  const c = C(); accent(c);
+  if (ui.route.c && Sync.loaded && !c){ location.hash = '#/'; return; }
+  renderSide(); renderTop();
+  const V = $('#view');
+  if (!Sync.loaded){ V.innerHTML = Sync.err ? errBox() : `<div class="empty">${ic('clock')}<div>Se încarcă datele…</div></div>`; return; }
+  const v = ui.route.v;
+  try {
+    if (v === 'admin') V.innerHTML = isAdmin() ? viewAdmin() : needLogin();
+    else if (!c) V.innerHTML = viewHome();
+    else V.innerHTML = ({overview: viewOverview, teams: viewTeams, matches: viewMatches, table: viewTable, ko: viewKO, stats: viewStats, rules: viewRules, team: viewTeam}[v] || viewOverview)(c);
+  } catch (e){ console.error(e); V.innerHTML = `<div class="banner">${ic('info')}Eroare de afișare: ${esc(e.message)}</div>`; }
+  if (v === 'admin' && isAdmin()) loadAudit();
+}
+function errBox(){
+  return `<div class="card" style="max-width:640px"><h3>${ic('info')}Nu mă pot conecta la baza de date</h3><p class="muted">${esc(Sync.err)}</p>
+    <div class="row"><button class="btn" onclick="location.reload()">${ic('undo')}Reîncearcă</button><button class="btn" data-act="goLocal">Lucrează local (fără sincronizare)</button></div></div>`;
+}
+const needLogin = () => `<div class="empty">${ic('lock')}<div>Această secțiune este disponibilă doar administratorilor.</div><div style="margin-top:12px"><button class="btn primary" data-act="login">Autentificare</button></div></div>`;
+const emptyBox = (icon, txt, extra = '') => `<div class="empty">${ic(icon)}<div>${txt}</div>${extra ? `<div style="margin-top:14px">${extra}</div>` : ''}</div>`;
+
+/* ---------- capturi ---------- */
+function snapCard(id, h3, body, o = {}){
+  return `<div class="card ${o.cls || ''}" id="${id}" ${o.style ? `style="${o.style}"` : ''}>
+    <div class="snap-head" data-title="${esc(o.title || '')}"></div>
+    <h3>${h3}<span class="sp"></span>${o.tools || ''}<button class="ib nosnap" title="Captură imagine (PNG)" data-act="snap" data-id="${id}">${ic('cam')}</button></h3>
+    ${body}<div class="snap-foot"></div></div>`;
+}
+
+/* ---------- acasă ---------- */
+function viewHome(){
+  const list = Object.values(DB.comps).sort((a, b) => (a.status === 'incheiat') - (b.status === 'incheiat') || (b.createdAt || 0) - (a.createdAt || 0));
+  const noAdmins = !Object.keys(DB.admins).length;
+  let h = `<div class="hero"><div class="lg" style="width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:conic-gradient(from 200deg,#3b82f6,#22d3ee,#a78bfa,#3b82f6)">${ic('ball', 34).replace('class="i"', 'class="i" style="stroke:#fff;width:34px;height:34px"')}</div>
+    <div style="flex:1"><h2>Competiții FC Mobile</h2><div class="muted">Champions League · Cupa Mondială · Campionat pe 2 ligi — totul sincronizat live.</div></div>
+    ${isAdmin() ? `<button class="btn primary lg" data-act="newComp">${ic('plus')}Competiție nouă</button>` : ''}</div>`;
+  if (noAdmins) h += `<div class="banner info">${ic('shield')}<div style="flex:1"><b>Primul pas:</b> creează contul de administrator principal. Doar administratorii pot crea și gestiona competiții.</div><button class="btn primary" data-act="setupAdmin">Creează administrator</button></div>`;
+  if (!list.length) return h + emptyBox('trophy', 'Nu există încă nicio competiție.', isAdmin() ? `<button class="btn primary" data-act="newComp">${ic('plus')}Creează prima competiție</button>` : '');
+  h += `<div class="grid gauto">${list.map(c => {
+    const pr = phaseProgress(c), n = Object.keys(c.teams).length, ch = koChampion(c);
+    return `<div class="card ccard" data-act="nav" data-to="${cpath(c, 'overview')}">
+      <div class="top" style="background:${TYPES[c.type].grad}"></div>
+      <div class="bd">${compLogo(c, 60)}
+        <div style="margin-top:10px;font-weight:850;font-size:16.5px">${esc(c.name)}</div>
+        <div class="row" style="margin:6px 0 12px;gap:6px"><span class="chip acc">${esc(TYPES[c.type].name)}</span>${c.season ? `<span class="chip">${esc(c.season)}</span>` : ''}${c.status === 'incheiat' ? '<span class="chip">Încheiată</span>' : '<span class="chip ok">Activă</span>'}</div>
+        <div class="row between small muted"><span>${n} echipe</span><span>${pr.played}/${pr.total} meciuri</span></div>
+        <div class="bar" style="margin-top:6px"><i style="width:${pr.total ? Math.round(pr.played / pr.total * 100) : 0}%"></i></div>
+        ${ch ? `<div class="row small" style="margin-top:10px;color:var(--gold);font-weight:700">${ic('trophy', 15)}${esc(TM(c, ch).name)}</div>` : ''}
+      </div></div>`; }).join('')}</div>`;
+  return h;
+}
+
+/* ---------- prezentare ---------- */
+function nextStep(c){
+  const n = Object.keys(c.teams).length, pr = phaseProgress(c);
+  if (n < 2) return ['Adaugă echipele participante (poți adăuga oricând, și în bloc).', 'teams', 'Adaugă echipe'];
+  if (c.type === 'ucl'){
+    if (!c.plan.length) return ['Distribuie echipele în urne și efectuează tragerea la sorți a fazei ligii.', 'teams', 'Mergi la tragere'];
+    if (uclPendingPlan(c).length) return ['Generează etapele fazei ligii (una câte una sau toate odată).', 'matches', 'Generează meciuri'];
+  }
+  if (c.type === 'wc'){
+    if (!c.groups.length) return ['Distribuie echipele în urne și trage la sorți grupele.', 'teams', 'Mergi la tragere'];
+  }
+  if (c.type !== 'ucl' && poolsOf(c).some(p => poolPending(c, p).length)) return ['Generează etapele (una câte una sau toate odată).', 'matches', 'Generează meciuri'];
+  if (!pr.done) return ['Introdu rezultatele meciurilor.', 'matches', 'Introdu rezultate'];
+  if (!c.ko) return [c.type === 'league' ? 'Sezonul regulat s-a încheiat — creează barajul.' : 'Faza principală s-a încheiat — creează tabloul eliminatoriu.', 'ko', c.type === 'league' ? 'Creează baraj' : 'Creează tabloul'];
+  if (c.type === 'league') return ['Introdu rezultatele barajului, apoi pornește sezonul următor.', 'ko', 'Baraj & sezon'];
+  if (koChampion(c)) return null;
+  return ['Introdu rezultatele fazei eliminatorii.', 'ko', 'Eliminatorii'];
+}
+function viewOverview(c){
+  const pr = phaseProgress(c), stt = compStats(c), n = Object.keys(c.teams).length, ch = koChampion(c);
+  let h = `<div class="hero">${compLogo(c, 84)}<div style="flex:1;min-width:0"><h2>${esc(c.name)}</h2>
+    <div class="meta"><span class="chip acc">${ic(TYPES[c.type].icon, 13)}${esc(TYPES[c.type].name)}</span>${c.season ? `<span class="chip">${esc(c.season)}</span>` : ''}${c.status === 'incheiat' ? '<span class="chip">Încheiată</span>' : '<span class="chip ok">Activă</span>'}</div>
+    <div style="max-width:420px;margin-top:14px"><div class="row between small muted"><span>Progres faza principală</span><span>${pr.played}/${pr.total}</span></div><div class="bar" style="margin-top:6px"><i style="width:${pr.total ? Math.round(pr.played / pr.total * 100) : 0}%"></i></div></div></div>
+    ${ED(c, `<button class="btn nosnap" data-act="editComp">${ic('edit')}Editează</button>`)}</div>`;
+  if (ch) h += champBox(c, ch, 'Câștigătoarea competiției');
+  if (canEdit(c)){ const ns = nextStep(c); if (ns) h += `<div class="banner info">${ic('zap')}<div style="flex:1"><b>Pasul următor:</b> ${ns[0]}</div><button class="btn primary sm" data-act="nav" data-to="${cpath(c, ns[1])}">${ns[2]}</button></div>`; }
+  h += `<div class="grid g4" style="margin-bottom:18px">
+    ${kpi(n, 'Echipe')}${kpi(stt.played, 'Meciuri jucate')}${kpi(stt.goals, 'Goluri')}${kpi(stt.avg.toFixed(2), 'Goluri / meci')}</div>`;
+  const upcoming = ms(c).filter(m => !m.played).sort((a, b) => stageRank(a) - stageRank(b) || mOrder(a, b)).slice(0, 6);
+  const recent = ms(c).filter(m => m.played).sort((a, b) => (b.playedAt || 0) - (a.playedAt || 0) || mOrder(b, a)).slice(0, 6);
+  let side = '';
+  if (c.type === 'ucl') side = snapCard('ov-tbl', `${ic('table')}Faza ligii — top 8`, tableHTML(c, uclTable(c).slice(0, 8), {zone: uclZone(c), compact: true}), {title: 'Faza ligii — top 8', tools: `<button class="btn sm ghost nosnap" data-act="nav" data-to="${cpath(c, 'table')}">Tot</button>`});
+  else if (c.type === 'league') side = ['d1', 'd2'].map(d => snapCard('ov-' + d, `${ic('table')}${esc(c.settings[d === 'd1' ? 'div1' : 'div2'])} — top 5`, tableHTML(c, divTable(c, d).slice(0, 5), {zone: leagueZone(c, d), compact: true}), {title: c.settings[d === 'd1' ? 'div1' : 'div2']})).join('<div style="height:18px"></div>');
+  else side = c.groups.length ? snapCard('ov-gr', `${ic('table')}Liderii grupelor`, `<div class="lead">${c.groups.map(g => { const r = groupTable(c, g.id)[0]; return `<div class="li"><span class="pos">${esc(g.id)}</span>${r ? teamHTML(c, r.id, {s: 24}) : '<span class="dim">—</span>'}<span class="v">${r ? r.Pts : ''}</span></div>`; }).join('')}</div>`, {title: 'Liderii grupelor'}) : '';
+  const sc = scorerList(c).slice(0, 5);
+  h += `<div class="grid g21"><div class="grid" style="align-content:start">
+    ${snapCard('ov-next', `${ic('clock')}Următoarele meciuri`, upcoming.length ? `<div class="mlist">${upcoming.map(m => matchRow(c, m, {meta: true})).join('')}</div>` : emptyBox('cal', 'Niciun meci programat.'), {title: 'Următoarele meciuri'})}
+    ${snapCard('ov-last', `${ic('check')}Ultimele rezultate`, recent.length ? `<div class="mlist">${recent.map(m => matchRow(c, m, {meta: true, ro: true})).join('')}</div>` : emptyBox('ball', 'Încă nu s-a jucat niciun meci.'), {title: 'Ultimele rezultate'})}
+  </div><div class="grid" style="align-content:start">${side}
+    ${snapCard('ov-sc', `${ic('fire')}Golgheteri`, sc.length ? scorerTable(c, sc) : `<div class="muted small">Golgheterii apar după ce introduci marcatorii la meciuri.</div>`, {title: 'Golgheteri'})}
+  </div></div>`;
+  return h;
+}
+const kpi = (v, l, sub = '') => `<div class="card kpi"><span class="v">${v}</span><span class="l">${l}</span>${sub}</div>`;
+const stageRank = m => ({league: 0, group: 0, playoff: 1, ko: 1})[m.stage] || 0;
+function champBox(c, tid, label){
+  const t = TM(c, tid); if (!t) return '';
+  return `<div class="champ">${logoHTML(t, 64)}<div style="flex:1"><div class="tt">${ic('trophy', 14)} ${esc(label)}</div><div class="nn">${esc(t.name)}</div>${t.manager ? `<div class="muted">${esc(t.manager)}</div>` : ''}</div>${ic('trophy', 46).replace('class="i"', 'class="i" style="color:var(--gold);width:46px;height:46px"')}</div>`;
+}
+
+/* ---------- meci ---------- */
+function roundLabel(c, m){
+  if (m.stage === 'ko' || m.stage === 'playoff') return m.rlabel || 'Eliminatorii';
+  return 'Etapa ' + (m.round || 1);
+}
+function matchRow(c, m, o = {}){
+  const edit = canEdit(c) && !o.ro;
+  const hw = m.played && (m.hs > m.as || (m.hs === m.as && m.ph != null && m.ph > m.pa));
+  const aw = m.played && (m.as > m.hs || (m.hs === m.as && m.pa != null && m.pa > m.ph));
+  let score;
+  if (m.played) score = `<div><div class="score"><span class="s ${hw ? 'w' : ''}">${m.hs}</span><span class="dim">:</span><span class="s ${aw ? 'w' : ''}">${m.as}</span></div>${m.ph != null ? `<div class="pens">pen. ${m.ph}–${m.pa}</div>` : m.forfeit ? '<div class="pens">neprezentare</div>' : ''}</div>`;
+  else if (edit) score = `<div class="score" data-mid="${m.id}"><input inputmode="numeric" type="number" min="0" data-k="hs" aria-label="goluri gazde"><span class="dim">:</span><input inputmode="numeric" type="number" min="0" data-k="as" aria-label="goluri oaspeți"></div>`;
+  else score = `<div class="score"><span class="vs">${m.date ? esc(fmtDay(m.date)) : 'vs'}</span></div>`;
+  const chips = [];
+  if (o.meta){ chips.push(`<span class="chip">${esc(roundLabel(c, m))}</span>`); }
+  if (m.stage === 'group' && (o.meta || o.grp)) chips.push(`<span class="chip acc">Gr. ${esc(m.group)}</span>`);
+  if (m.stage === 'league' && c.type === 'league' && o.meta) chips.push(`<span class="chip">${esc(c.settings[m.div === 'd1' ? 'div1' : 'div2'])}</span>`);
+  if (m.date && m.played && !o.meta) chips.push(`<span class="chip hide-sm">${esc(fmtDay(m.date))}</span>`);
+  const nsc = (m.sc.h.length + m.sc.a.length);
+  return `<div class="match">
+    <div class="h">${teamHTML(c, m.home, {s: 30})}</div>${score}<div>${teamHTML(c, m.away, {s: 30})}</div>
+    <div class="meta">${chips.join('')}${nsc && c.settings.showScorers ? `<button class="ib" title="Marcatori" data-act="viewMatch" data-id="${m.id}">${ic('ball', 16)}</button>` : ''}
+      ${edit ? `${!m.played ? `<button class="ib" title="Salvează scorul" data-act="quickSave" data-id="${m.id}">${ic('check')}</button>` : ''}<button class="ib" title="Detalii / editare" data-act="editMatch" data-id="${m.id}">${ic('edit', 16)}</button>` : (!nsc ? `<button class="ib" title="Detalii" data-act="viewMatch" data-id="${m.id}">${ic('eye', 16)}</button>` : '')}</div>
+  </div>`;
+}
+
+/* ---------- echipe ---------- */
+function teamRow(c, t, o = {}){
+  const chips = [];
+  if (c.type !== 'league' && t.pot) chips.push(`<span class="chip">Urna ${t.pot}</span>`);
+  if (c.type === 'wc' && t.group) chips.push(`<span class="chip acc">Grupa ${esc(t.group)}</span>`);
+  if (t.deduct) chips.push(`<span class="chip bad">−${t.deduct} pct</span>`);
+  const e = canEdit(c);
+  return `<div class="match" style="grid-template-columns:auto minmax(0,1fr) auto">
+    <div ${e ? `class="clk" title="Schimbă logo-ul" data-act="teamLogo" data-id="${t.id}"` : ''}>${logoHTML(t, 42)}</div>
+    <div style="min-width:0">${teamHTML(c, t.id, {nologo: true})}<div class="row" style="gap:5px;margin-top:4px">${chips.join('')}</div></div>
+    <div class="meta">${e ? `${o.potSel ? potSelect(c, t) : ''}${o.divSel ? `<select class="in sm" data-chg="teamDiv" data-id="${t.id}"><option value="d1" ${t.div === 'd1' ? 'selected' : ''}>${esc(c.settings.div1)}</option><option value="d2" ${t.div === 'd2' ? 'selected' : ''}>${esc(c.settings.div2)}</option></select>` : ''}
+      ${o.grpSel ? `<select class="in sm" data-chg="teamGroup" data-id="${t.id}">${c.groups.map(g => `<option value="${g.id}" ${t.group === g.id ? 'selected' : ''}>Gr. ${esc(g.id)}</option>`).join('')}</select>` : ''}
+      <button class="ib" title="Editează" data-act="editTeam" data-id="${t.id}">${ic('edit', 16)}</button><button class="ib danger" title="Șterge" data-act="delTeam" data-id="${t.id}">${ic('trash', 16)}</button>` : ''}</div></div>`;
+}
+function potSelect(c, t){
+  const n = c.type === 'ucl' ? c.settings.matchesPerTeam / 2 : c.settings.groupSize;
+  return `<select class="in sm" data-chg="teamPot" data-id="${t.id}"><option value="">Urnă –</option>${Array.from({length: n}, (_, i) => `<option value="${i + 1}" ${+t.pot === i + 1 ? 'selected' : ''}>Urna ${i + 1}</option>`).join('')}</select>`;
+}
+function viewTeams(c){
+  const all = teams(c), e = canEdit(c);
+  let h = `<div class="ph"><div><h2>Echipe <span class="chip">${all.length}</span></h2><p>${c.type === 'league' ? 'Adaugă echipe oricând, în oricare ligă — meciurile lipsă se generează automat la următoarea generare.' : c.type === 'ucl' ? 'Echipele se distribuie în urne (1 = cele mai puternice). Fiecare echipă joacă 2 adversari din fiecare urnă: unul acasă, unul în deplasare.' : 'Urnele stabilesc distribuția în grupe: câte o echipă din fiecare urnă în fiecare grupă.'}</p></div>
+    ${e ? `<div class="row"><button class="btn" data-act="bulkTeams">${ic('list')}Adaugă în bloc</button><button class="btn primary" data-act="addTeam">${ic('plus')}Echipă nouă</button></div>` : ''}</div>`;
+  if (!all.length) return h + emptyBox('users', 'Nu există echipe încă.', e ? `<button class="btn primary" data-act="bulkTeams">${ic('list')}Adaugă echipele</button>` : '');
+  if (c.type === 'league'){
+    h += `<div class="grid g2">${['d1', 'd2'].map(d => { const L = all.filter(t => t.div === d); return `<div class="card"><h3>${ic('layers')}${esc(c.settings[d === 'd1' ? 'div1' : 'div2'])}<span class="chip">${L.length}</span><span class="sp"></span>${e ? `<button class="btn sm" data-act="addTeam" data-div="${d}">${ic('plus')}Adaugă</button>` : ''}</h3><div class="mlist">${L.map(t => teamRow(c, t, {divSel: true})).join('') || '<div class="muted small">Nicio echipă.</div>'}</div></div>`; }).join('')}</div>`;
+    const no = all.filter(t => t.div !== 'd1' && t.div !== 'd2');
+    if (no.length) h += `<div class="card" style="margin-top:18px"><h3>Fără ligă</h3><div class="mlist">${no.map(t => teamRow(c, t, {divSel: true})).join('')}</div></div>`;
+    return h;
+  }
+  const nP = c.type === 'ucl' ? c.settings.matchesPerTeam / 2 : c.settings.groupSize;
+  const drawn = c.type === 'ucl' ? c.plan.length > 0 : c.groups.length > 0;
+  const played = ms(c).some(m => m.played && (m.stage === 'league' || m.stage === 'group'));
+  if (e){
+    let info = '';
+    if (c.type === 'ucl'){
+      const N = all.length, M = c.settings.matchesPerTeam, S = N / nP;
+      const ok = Number.isInteger(S) && S >= 3 && Array.from({length: nP}, (_, i) => all.filter(t => +t.pot === i + 1).length).every(x => x === S);
+      info = N < M + 1 ? `<span class="chip bad">Minim ${M + 1} echipe pentru ${M} meciuri/echipă</span>` : ok ? `<span class="chip ok">${nP} urne × ${S} echipe — tragere exactă UCL</span>` : `<span class="chip warn">Urne inegale → tragere echilibrată (fiecare echipă tot ${M} meciuri, ${M / 2} acasă / ${M / 2} deplasare)</span>`;
+    } else {
+      const G = wcGroupCount(c); info = `<span class="chip ok">${G} grupe × ~${Math.ceil(all.length / G)} echipe</span><span class="chip">${G * c.settings.advance} calificate direct${wcThirdsPreview(c)}</span>`;
+    }
+    h += `<div class="card" style="margin-bottom:18px"><h3>${ic('shuffle')}Tragere la sorți<span class="sp"></span>${drawn ? '<span class="chip ok">Efectuată</span>' : '<span class="chip warn">Neefectuată</span>'}</h3>
+      <div class="row" style="margin-bottom:12px">${info}</div>
+      <div class="row"><button class="btn" data-act="autoPots" data-mode="order">${ic('list')}Urne după ordinea echipelor</button><button class="btn" data-act="autoPots" data-mode="random">${ic('shuffle')}Urne aleatoriu</button>
+      <span class="sp"></span><button class="btn primary" data-act="doDraw" ${played ? 'disabled title="S-au jucat deja meciuri"' : ''}>${ic('shuffle')}${drawn ? 'Refă tragerea la sorți' : (c.type === 'ucl' ? 'Trage la sorți faza ligii' : 'Trage la sorți grupele')}</button></div></div>`;
+  }
+  if (c.type === 'wc' && c.groups.length){
+    h += `<div class="grid g2">${c.groups.map(g => { const L = all.filter(t => t.group === g.id); return `<div class="card"><h3>${ic('globe')}${esc(g.name)}<span class="chip">${L.length}</span></h3><div class="mlist">${L.map(t => teamRow(c, t, {grpSel: true})).join('')}</div></div>`; }).join('')}</div>`;
+    const no = all.filter(t => !c.groups.some(g => g.id === t.group));
+    if (no.length) h += `<div class="card" style="margin-top:18px"><h3>Fără grupă</h3><div class="mlist">${no.map(t => teamRow(c, t, {grpSel: true})).join('')}</div></div>`;
+    return h;
+  }
+  const groups = Array.from({length: nP}, (_, i) => [i + 1, all.filter(t => +t.pot === i + 1)]);
+  const none = all.filter(t => !(+t.pot >= 1 && +t.pot <= nP));
+  h += `<div class="grid g2">${groups.map(([p, L]) => `<div class="card"><h3>${ic('layers')}Urna ${p}<span class="chip">${L.length}</span></h3><div class="mlist">${L.map(t => teamRow(c, t, {potSel: true})).join('') || '<div class="muted small">Goală</div>'}</div></div>`).join('')}</div>`;
+  if (none.length) h += `<div class="card" style="margin-top:18px"><h3>Fără urnă<span class="chip warn">${none.length}</span></h3><div class="mlist">${none.map(t => teamRow(c, t, {potSel: true})).join('')}</div></div>`;
+  return h;
+}
+function wcThirdsPreview(c){ const G = wcGroupCount(c), q = G * c.settings.advance; const th = +c.settings.thirds >= 0 ? Math.min(G, +c.settings.thirds) : Math.min(G, nextPow2(q) - q); return th ? ` + ${th} cele mai bune locuri ${+c.settings.advance + 1}` : ''; }
+
+/* ---------- meciuri ---------- */
+function phases(c){
+  if (c.type === 'ucl') return [['league', 'Faza ligii'], ['ko', 'Eliminatorii']];
+  if (c.type === 'wc') return [['group', 'Grupe'], ['ko', 'Eliminatorii']];
+  return [['d1', c.settings.div1], ['d2', c.settings.div2], ['playoff', 'Baraj']];
+}
+function phaseFilter(c, ph){
+  if (ph === 'league') return m => m.stage === 'league';
+  if (ph === 'ko') return m => m.stage === 'ko';
+  if (ph === 'group') return m => m.stage === 'group' && (!ui.mf.group || m.group === ui.mf.group);
+  if (ph === 'd1' || ph === 'd2') return m => m.stage === 'league' && m.div === ph;
+  if (ph === 'playoff') return m => m.stage === 'playoff';
+  return () => true;
+}
+function viewMatches(c){
+  const P = phases(c); const mf = ui.mf;
+  if (!mf.phase) mf.phase = (c.ko && phaseProgress(c).done) ? (c.type === 'league' ? 'playoff' : 'ko') : P[0][0];
+  const e = canEdit(c);
+  let list = ms(c).filter(phaseFilter(c, mf.phase));
+  const rounds = [...new Set(list.sort(mOrder).map(m => roundLabel(c, m)))];
+  if (mf.round && !rounds.includes(mf.round)) mf.round = '';
+  if (mf.team) list = list.filter(m => m.home === mf.team || m.away === mf.team);
+  if (mf.status === 'todo') list = list.filter(m => !m.played); else if (mf.status === 'done') list = list.filter(m => m.played);
+  if (mf.round) list = list.filter(m => roundLabel(c, m) === mf.round);
+  let h = `<div class="ph"><div><h2>Meciuri</h2><p>${e ? 'Scrie scorul direct și apasă ✓ (sau Enter). Pentru marcatori, dată, penalty-uri sau neprezentare folosește butonul de editare.' : 'Programul și rezultatele competiției.'}</p></div>
+    ${e ? `<button class="btn" data-act="addMatch">${ic('plus')}Meci manual</button>` : ''}</div>`;
+  h += `<div class="row" style="margin-bottom:16px"><div class="seg">${P.map(([k, l]) => `<button class="${mf.phase === k ? 'on' : ''}" data-act="mf" data-k="phase" data-v="${k}">${esc(l)}</button>`).join('')}</div>
+    ${mf.phase === 'group' && c.groups.length ? `<select class="in sm" data-chg="mf" data-k="group"><option value="">Toate grupele</option>${c.groups.map(g => `<option value="${g.id}" ${mf.group === g.id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select>` : ''}
+    <select class="in sm" data-chg="mf" data-k="round"><option value="">Toate etapele</option>${rounds.map(r => `<option ${mf.round === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
+    <select class="in sm" data-chg="mf" data-k="team"><option value="">Toate echipele</option>${teams(c).map(t => `<option value="${t.id}" ${mf.team === t.id ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select>
+    <div class="seg">${[['', 'Toate'], ['todo', 'De jucat'], ['done', 'Jucate']].map(([k, l]) => `<button class="${(mf.status || '') === k ? 'on' : ''}" data-act="mf" data-k="status" data-v="${k}">${l}</button>`).join('')}</div></div>`;
+  if (e) h += genPanel(c, mf.phase);
+  if (!list.length) return h + emptyBox('cal', 'Niciun meci pentru filtrul ales.');
+  const by = {}; list.sort(mOrder).forEach(m => { const k = roundLabel(c, m); (by[k] = by[k] || []).push(m); });
+  const pool = (mf.phase === 'd1' || mf.phase === 'd2') ? poolsOf(c).find(p => p.key === mf.phase) : null;
+  h += Object.keys(by).map((k, i) => {
+    const L = by[k], done = L.filter(m => m.played).length;
+    let bye = '';
+    if (pool && !mf.team){ const busy = new Set(L.flatMap(m => [m.home, m.away])); const free = pool.ids.filter(id => !busy.has(id)); if (free.length && free.length < pool.ids.length) bye = `<div class="small muted" style="margin:-2px 0 8px">Stă etapa aceasta: ${free.map(id => esc(TM(c, id)?.name)).join(', ')}</div>`; }
+    const id = 'rd-' + i;
+    return snapCard(id, `${ic('cal')}${esc(k)}<span class="chip">${done}/${L.length}</span>`, bye + `<div class="mlist">${L.map(m => matchRow(c, m, {grp: mf.phase === 'group'})).join('')}</div>`, {title: k + (pool ? ' · ' + pool.name : ''), style: 'margin-bottom:16px'});
+  }).join('');
+  return h;
+}
+function genPanel(c, ph){
+  if (c.status === 'incheiat') return '';
+  let body = '';
+  if (ph === 'league' && c.type === 'ucl'){
+    if (!c.plan.length) body = `<span class="muted">Tragerea la sorți a fazei ligii nu a fost efectuată.</span><span class="sp"></span><button class="btn primary" data-act="nav" data-to="${cpath(c, 'teams')}">${ic('shuffle')}Mergi la tragere</button>`;
+    else { const pend = uclPendingPlan(c); const nr = new Set(pend.map(p => p.r)).size;
+      body = pend.length ? `<span class="muted">${pend.length} meciuri în ${nr} etape rămase de generat (tragerea e făcută; le publici când vrei).</span><span class="sp"></span><button class="btn" data-act="gen" data-all="0">${ic('plus')}Generează etapa ${Math.min(...pend.map(p => p.r))}</button><button class="btn primary" data-act="gen" data-all="1">${ic('bolt')}Generează toate</button>` : `<span class="chip ok">${ic('check', 13)}Toate etapele fazei ligii sunt generate</span>`; }
+  } else if (ph === 'group' || ph === 'd1' || ph === 'd2'){
+    const pools = poolsOf(c).filter(p => ph === 'group' || p.key === ph);
+    if (ph === 'group' && !c.groups.length) body = `<span class="muted">Grupele nu au fost trase la sorți.</span><span class="sp"></span><button class="btn primary" data-act="nav" data-to="${cpath(c, 'teams')}">${ic('shuffle')}Mergi la tragere</button>`;
+    else {
+      const pend = sum(pools, p => sum(poolPending(c, p), r => r.length)); const nr = Math.max(0, ...pools.map(p => poolPending(c, p).length));
+      body = pend ? `<span class="muted">${pend} meciuri rămase de generat (${nr} etape).</span><span class="sp"></span>
+        <button class="btn" data-act="gen" data-all="0">${ic('plus')}Generează etapa următoare</button><button class="btn primary" data-act="gen" data-all="1">${ic('bolt')}Generează toate</button>
+        ${c.type === 'league' ? `<button class="btn ghost" data-act="gen" data-all="1" data-both="1" title="Ambele ligi">Ambele ligi</button>` : ''}`
+        : `<span class="chip ok">${ic('check', 13)}Toate meciurile sunt generate</span><span class="muted small">Dacă adaugi echipe noi, meciurile lor vor apărea aici pentru generare.</span>`;
+    }
+  } else if (ph === 'ko' || ph === 'playoff'){
+    if (!c.ko) body = `<span class="muted">${ph === 'playoff' ? 'Barajul' : 'Tabloul eliminatoriu'} nu a fost creat.</span><span class="sp"></span><button class="btn primary" data-act="nav" data-to="${cpath(c, 'ko')}">${ic('trophy')}Mergi la ${ph === 'playoff' ? 'baraj' : 'eliminatorii'}</button>`;
+    else body = `<span class="muted">Meciurile eliminatorii se creează pe măsură ce se cunosc echipele.</span><span class="sp"></span><button class="btn primary" data-act="genKO">${ic('bolt')}Generează meciurile disponibile</button>`;
+  }
+  return body ? `<div class="card nosnap" style="margin-bottom:16px;padding:12px 14px"><div class="row">${ic('bolt')}${body}</div></div>` : '';
+}
+
+/* ---------- clasamente ---------- */
+function uclZone(c){ const D = +c.settings.direct, po = c.settings.playoff;
+  return p => p <= D ? ['#22c55e', 'Calificare directă în ' + roundName(po ? 2 * D : D).toLowerCase()] : (po && p <= 3 * D) ? ['#3b82f6', 'Play-off eliminatoriu'] : ['#ef4444', 'Eliminată']; }
+function leagueZone(c, d){
+  const s = c.settings, n = teams(c).filter(t => t.div === d).length;
+  if (d === 'd1') return p => p === 1 ? ['#f5c542', 'Campioană'] : p > n - s.relegDirect ? ['#ef4444', 'Retrogradare directă'] : p > n - s.relegDirect - s.relegPlayoff ? ['#f59e0b', 'Baraj de menținere'] : null;
+  return p => p <= s.promoDirect ? ['#22c55e', 'Promovare directă'] : p <= +s.promoDirect + +s.promoPlayoff ? ['#f59e0b', 'Baraj de promovare'] : null;
+}
+function wcZone(c){ const adv = +c.settings.advance, th = wcThirds(c); return p => p <= adv ? ['#22c55e', 'Calificată'] : (p === adv + 1 && th) ? ['#f59e0b', 'Posibilă calificare (cele mai bune locuri ' + (adv + 1) + ')'] : null; }
+function tableHTML(c, rows, o = {}){
+  if (!rows.length) return `<div class="muted small">Nicio echipă.</div>`;
+  const z = o.zone || (() => null), cp = o.compact;
+  const legend = {};
+  const body = rows.map((r, i) => {
+    const zz = z(r.pos, r); if (zz) legend[zz[1]] = zz[0];
+    const prev = i ? z(rows[i - 1].pos, rows[i - 1]) : null;
+    const sep = i && (prev ? prev[0] : '') !== (zz ? zz[0] : '') ? 'sep' : '';
+    return `<tr class="${sep}"><td class="zone"><i style="background:${zz ? zz[0] : 'transparent'}"></i></td><td class="c"><span class="pos">${r.pos}</span></td>
+      <td style="max-width:260px">${teamHTML(c, r.id, {s: 26, sub: !cp})}</td><td class="c">${r.P}</td>
+      ${cp ? '' : `<td class="c hide-sm">${r.W}</td><td class="c hide-sm">${r.D}</td><td class="c hide-sm">${r.L}</td><td class="c hide-sm">${r.GF}</td><td class="c hide-sm">${r.GA}</td>`}
+      <td class="c">${sign(r.GD)}</td><td class="c"><span class="pts">${r.Pts}</span>${r.ded ? `<sup class="dim" title="Penalizare −${r.ded}">*</sup>` : ''}</td>
+      ${cp || o.noForm ? '' : `<td class="hide-sm"><span class="form">${r.form.map(f => `<b class="${f}">${f === 'W' ? 'V' : f === 'D' ? 'E' : 'Î'}</b>`).join('')}</span></td>`}</tr>`;
+  }).join('');
+  const lg = Object.keys(legend).length && !o.noLegend ? `<div class="legend">${Object.entries(legend).map(([l, col]) => `<span><i style="background:${col}"></i>${esc(l)}</span>`).join('')}${rows.some(r => r.ded) ? '<span>* penalizare de puncte</span>' : ''}</div>` : '';
+  return `<div class="tw"><table class="tbl"><thead><tr><th class="zone"></th><th class="c">#</th><th>Echipă</th><th class="c">MJ</th>${cp ? '' : '<th class="c hide-sm">V</th><th class="c hide-sm">E</th><th class="c hide-sm">Î</th><th class="c hide-sm">GM</th><th class="c hide-sm">GP</th>'}<th class="c">GD</th><th class="c">Pct</th>${cp || o.noForm ? '' : '<th class="hide-sm">Formă</th>'}</tr></thead><tbody>${body}</tbody></table></div>${lg}`;
+}
+const venueSeg = () => `<div class="seg nosnap">${[['all', 'Total'], ['home', 'Acasă'], ['away', 'Deplasare']].map(([k, l]) => `<button class="${ui.tableView === k ? 'on' : ''}" data-act="tview" data-v="${k}">${l}</button>`).join('')}</div>`;
+function viewTable(c){
+  const V = ui.tableView;
+  let h = `<div class="ph"><div><h2>${c.type === 'ucl' ? 'Clasamentul fazei ligii' : c.type === 'wc' ? 'Clasamentele grupelor' : 'Clasamente'}</h2><p>Departajare: ${esc(TB_LABEL[c.settings.tiebreak] || '')}.</p></div>${venueSeg()}</div>`;
+  if (c.type === 'ucl'){
+    h += snapCard('tbl-ucl', `${ic('table')}Faza ligii${V !== 'all' ? ` · ${V === 'home' ? 'acasă' : 'deplasare'}` : ''}`, tableHTML(c, uclTable(c, V), {zone: V === 'all' ? uclZone(c) : null}), {title: 'Clasament faza ligii'});
+  } else if (c.type === 'league'){
+    h += ['d1', 'd2'].map(d => { const nm = c.settings[d === 'd1' ? 'div1' : 'div2'];
+      return snapCard('tbl-' + d, `${ic('layers')}${esc(nm)}${V !== 'all' ? ` · ${V === 'home' ? 'acasă' : 'deplasare'}` : ''}`, tableHTML(c, divTable(c, d, V), {zone: V === 'all' ? leagueZone(c, d) : null}), {title: 'Clasament ' + nm, style: 'margin-bottom:18px'}); }).join('');
+  } else {
+    if (!c.groups.length) return h + emptyBox('globe', 'Grupele nu au fost trase la sorți încă.');
+    h += `<div class="grid g2">${c.groups.map(g => snapCard('tbl-g' + g.id, `${ic('globe')}${esc(g.name)}`, tableHTML(c, groupTable(c, g.id, V), {zone: V === 'all' ? wcZone(c) : null, noForm: true}), {title: g.name})).join('')}</div>`;
+    const nT = wcThirds(c);
+    if (nT && V === 'all'){
+      const {thirds} = wcQualifiers(c); const adv = +c.settings.advance;
+      const rows = thirds.map((r, i) => ({...r, pos: i + 1}));
+      h += `<div style="height:18px"></div>` + snapCard('tbl-thirds', `${ic('medal')}Clasamentul locurilor ${adv + 1} <span class="chip">${nT} se califică</span>`, tableHTML(c, rows, {zone: p => p <= nT ? ['#22c55e', 'Calificată'] : ['#ef4444', 'Eliminată'], noForm: true}), {title: 'Clasamentul locurilor ' + (adv + 1)});
+    }
+  }
+  return h;
+}
+
+/* ---------- eliminatorii ---------- */
+function tieCard(c, tie, r){
+  const st = tieState(c, tie);
+  const slotLbl = s => s && s.w ? 'Câștigătoarea dublei anterioare' : s && s.l ? 'Învinsa din semifinală' : 'De stabilit';
+  const row = (tid, g, p, slot) => {
+    const cls = st.winner ? (st.winner === tid ? 'win' : 'lose') : '';
+    return `<div class="tr ${cls}">${tid ? teamHTML(c, tid, {s: 24, sub: false}) : (slot && slot.bye ? '<div class="team"><b class="dim">— liberă —</b></div>' : `<div class="team">${logoHTML(null, 24)}<div class="nm"><b class="dim small">${slotLbl(slot)}</b></div></div>`)}
+      <span class="g">${st.started ? g : ''}${p != null ? `<small class="dim" style="font-size:11px"> (${p})</small>` : ''}</span></div>`;
+  };
+  const legs = st.ms.filter(m => m.played).map(m => `${m.hs}-${m.as}`).join(', ');
+  const parts = [];
+  if (legs && tie.legs === 2) parts.push('Manșe: ' + legs);
+  if (st.pa != null) parts.push(`pen. ${st.pa}-${st.pb}`);
+  if (st.needPens) parts.push('<span style="color:var(--warn)">egal: lipsesc penalty-urile</span>');
+  const foot = st.bye ? 'Calificare directă' : st.ms.length ? (legs ? parts.join(' · ') : (st.ms[0].date ? fmtDay(st.ms[0].date) : 'Meci programat')) : (st.A && st.B ? 'Meci negenerat' : '');
+  return `<div class="tie ${r.key === 'r2' ? 'final' : ''} clk" data-act="openTie" data-id="${tie.id}">${row(st.A, st.ga, st.pa, tie.a)}${row(st.B, st.gb, st.pb, tie.b)}${foot ? `<div class="foot"><span>${foot}</span><span>${tie.legs === 2 ? 'tur-retur' : '1 meci'}</span></div>` : ''}</div>`;
+}
+function viewKO(c){
+  if (c.type === 'league') return viewLeagueEnd(c);
+  const e = canEdit(c), pr = phaseProgress(c);
+  let h = `<div class="ph"><div><h2>Faza eliminatorie</h2><p>${c.type === 'ucl' ? `Locurile 1–${c.settings.direct} merg direct în ${roundName(c.settings.playoff ? 2 * c.settings.direct : c.settings.direct).toLowerCase()}${c.settings.playoff ? `, locurile ${+c.settings.direct + 1}–${3 * c.settings.direct} joacă play-off (capii de serie ${+c.settings.direct + 1}–${2 * c.settings.direct} joacă returul acasă)` : ''}. Tabloul e fix până în finală, ca în UCL.` : 'Câștigătoarele de grupă întâlnesc echipe de pe locurile 2/3 din alte grupe; tabloul evită meciurile între echipe din aceeași grupă în primul tur.'}</p></div>
+    ${e && c.ko ? `<div class="row"><button class="btn" data-act="genKO">${ic('bolt')}Generează meciurile</button><button class="btn danger" data-act="buildKO">${ic('undo')}Refă tabloul</button></div>` : ''}</div>`;
+  if (!c.ko){
+    h += pr.done ? `<div class="banner ok">${ic('check')}Faza principală s-a încheiat. Tabloul poate fi creat.</div>` : `<div class="banner">${ic('info')}Faza principală nu s-a încheiat (${pr.played}/${pr.total} meciuri). Poți crea tabloul oricum — se folosește clasamentul curent.</div>`;
+    if (c.type === 'wc' && c.groups.length){
+      const {seeds} = wcQualifiers(c);
+      h += `<div class="card" style="margin-bottom:18px"><h3>${ic('users')}Echipe calificate (${seeds.length})</h3><div class="grid gauto">${seeds.map((s, i) => `<div class="row"><span class="pos">${i + 1}</span>${teamHTML(c, s.id, {s: 24})}<span class="chip">${s.place}${esc(s.grp)}</span></div>`).join('')}</div></div>`;
+    }
+    return h + (e ? `<div class="row"><button class="btn primary lg" data-act="buildKO">${ic('trophy')}Creează tabloul eliminatoriu</button></div>` : emptyBox('trophy', 'Tabloul eliminatoriu nu a fost creat încă.'));
+  }
+  const ch = koChampion(c); if (ch) h += champBox(c, ch, 'Câștigătoarea ' + c.name);
+  const main = c.ko.rounds.filter(r => !r.third), third = c.ko.rounds.find(r => r.third);
+  const cols = main.map(r => `<div class="bcol"><h4>${esc(r.name)}</h4>${r.ties.map(t => tieCard(c, t, r)).join('')}${r.key === 'r2' && third ? `<h4 style="margin-top:18px">${esc(third.name)}</h4>${third.ties.map(t => tieCard(c, t, third)).join('')}` : ''}</div>`).join('');
+  h += snapCard('bracket', `${ic('trophy')}Tabloul eliminatoriu`, `<div class="bracket">${cols}</div>`, {title: 'Tabloul eliminatoriu'});
+  return h;
+}
+function viewLeagueEnd(c){
+  const s = c.settings, e = canEdit(c), pr = phaseProgress(c);
+  const t1 = divTable(c, 'd1'), t2 = divTable(c, 'd2');
+  let h = `<div class="ph"><div><h2>Baraj & finalul sezonului</h2><p>${esc(s.div1)}: ultimele ${s.relegDirect} retrogradează direct, ${s.relegPlayoff ? `următoarea${s.relegPlayoff > 1 ? 'le ' + s.relegPlayoff : ''} joacă baraj` : 'fără baraj'}. ${esc(s.div2)}: primele ${s.promoDirect} promovează direct${s.promoPlayoff ? `, locul ${+s.promoDirect + 1}${s.promoPlayoff > 1 ? '–' + (+s.promoDirect + +s.promoPlayoff) : ''} joacă baraj` : ''}.</p></div></div>`;
+  if (!pr.done) h += `<div class="banner">${ic('info')}Sezonul regulat nu s-a încheiat (${pr.played}/${pr.total} meciuri). Situația de mai jos e provizorie.</div>`;
+  const champ = t1[0], rel = t1.slice(Math.max(0, t1.length - s.relegDirect)), pro = t2.slice(0, s.promoDirect);
+  const list = (rows, chipC) => rows.length ? rows.map(r => `<div class="row" style="margin-bottom:8px">${teamHTML(c, r.id, {s: 30})}<span class="sp"></span><span class="chip ${chipC}">${r.Pts} pct</span></div>`).join('') : '<div class="muted small">—</div>';
+  h += `<div class="grid g3" style="margin-bottom:18px">
+    ${snapCard('end-ch', `${ic('trophy')}Campioana ${esc(s.div1)}`, champ ? `<div class="row">${logoHTML(TM(c, champ.id), 56)}<div><div style="font-weight:850;font-size:18px">${esc(TM(c, champ.id).name)}</div><div class="muted">${champ.Pts} puncte · ${champ.W}V ${champ.D}E ${champ.L}Î</div></div></div>` : '—', {title: 'Campioana'})}
+    ${snapCard('end-up', `${ic('arrowUp')}Promovează din ${esc(s.div2)}`, list(pro, 'ok'), {title: 'Promovate'})}
+    ${snapCard('end-down', `${ic('arrowDown')}Retrogradează din ${esc(s.div1)}`, list(rel, 'bad'), {title: 'Retrogradate'})}</div>`;
+  if (!c.ko){
+    if (Math.min(s.relegPlayoff, s.promoPlayoff) > 0){
+      const k = Math.min(s.relegPlayoff, s.promoPlayoff); const prev = [];
+      for (let i = 0; i < k; i++){ const A = t1[t1.length - s.relegDirect - 1 - i], B = t2[+s.promoDirect + i]; if (A && B) prev.push([A.id, B.id]); }
+      h += `<div class="card" style="margin-bottom:18px"><h3>${ic('swap')}Baraj (previzionat)</h3>${prev.map(([a, b]) => `<div class="match" style="grid-template-columns:1fr auto 1fr"><div class="h">${teamHTML(c, a)}</div><span class="vs dim">vs</span><div>${teamHTML(c, b)}</div></div>`).join('') || '<div class="muted">—</div>'}
+        ${e ? `<div class="row" style="margin-top:14px"><button class="btn primary" data-act="buildKO">${ic('swap')}Creează barajul</button><span class="muted small">Echipa din ${esc(s.div1)} joacă returul acasă${s.playoffLegs == 1 ? ' (meci unic pe terenul ei)' : ''}.</span></div>` : ''}</div>`;
+    }
+  } else {
+    h += snapCard('baraj', `${ic('swap')}Baraj`, `<div class="grid gauto">${c.ko.rounds[0].ties.map(t => tieCard(c, t, c.ko.rounds[0])).join('')}</div>`, {title: 'Baraj', tools: e ? `<button class="btn sm nosnap" data-act="genKO">${ic('bolt')}Generează meciuri</button><button class="btn sm danger nosnap" data-act="buildKO">Refă</button>` : '', style: 'margin-bottom:18px'});
+  }
+  if (e) h += `<div class="card"><h3>${ic('zap')}Sezonul următor</h3><p class="muted" style="margin-top:0">Creează automat noul sezon: echipele promovate / retrogradate (inclusiv rezultatul barajului) sunt mutate în ligile corecte; logo-urile și datele echipelor se păstrează, iar sezonul curent rămâne în arhivă.</p>
+    <button class="btn primary" data-act="newSeason">${ic('zap')}Începe sezonul următor</button></div>`;
+  if (c.history.length) h += `<div class="card" style="margin-top:18px"><h3>${ic('clock')}Palmares</h3><div class="tw"><table class="tbl"><thead><tr><th>Sezon</th><th>Campioană ${esc(s.div1)}</th><th>Câștigătoare ${esc(s.div2)}</th><th>Promovate</th><th>Retrogradate</th></tr></thead><tbody>${c.history.map(x => `<tr><td>${esc(x.season)}</td><td><b>${esc(x.champ)}</b></td><td>${esc(x.champ2 || '')}</td><td>${esc((x.up || []).join(', '))}</td><td>${esc((x.down || []).join(', '))}</td></tr>`).join('')}</tbody></table></div></div>`;
+  return h;
+}
+
+/* ---------- statistici ---------- */
+function scorerTable(c, list){
+  return `<div class="tw"><table class="tbl"><thead><tr><th class="c">#</th><th>Jucător</th><th>Echipă</th><th class="c">Meciuri</th><th class="c">Goluri</th></tr></thead><tbody>${list.map((s, i) => `<tr><td class="c"><span class="pos">${i + 1}</span></td><td><b>${esc(s.name)}</b></td><td>${teamHTML(c, s.tid, {s: 22, sub: false})}</td><td class="c">${s.mp}</td><td class="c"><span class="pts">${s.g}</span></td></tr>`).join('')}</tbody></table></div>`;
+}
+function leaderCard(c, id, title, icon, rows, val, fmt = v => v){
+  return snapCard(id, `${ic(icon)}${title}`, `<div class="lead">${rows.slice(0, 6).map((r, i) => `<div class="li"><span class="pos">${i + 1}</span>${teamHTML(c, r.id, {s: 26})}<span class="v">${fmt(val(r))}</span></div>`).join('') || '<div class="muted small">—</div>'}</div>`, {title});
+}
+function viewStats(c){
+  const st = compStats(c), tab = ui.statsTab;
+  let h = `<div class="ph"><div><h2>Statistici</h2><p>Toate fazele competiției, actualizate live.</p></div></div>`;
+  h += `<div class="grid g4" style="margin-bottom:18px">${kpi(st.played, 'Meciuri')}${kpi(st.goals, 'Goluri')}${kpi(st.avg.toFixed(2), 'Medie / meci')}${kpi(`${st.homeW}<span class="dim" style="font-size:18px"> / ${st.draws} / ${st.awayW}</span>`, '1 / X / 2')}</div>`;
+  h += `<div class="tabs">${[['scorers', 'Golgheteri'], ['teams', 'Echipe'], ['matches', 'Meciuri'], ['form', 'Formă & serii']].map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-act="stab" data-v="${k}">${l}</button>`).join('')}</div>`;
+  const rows = st.all.filter(r => r.P > 0);
+  if (tab === 'scorers'){
+    const sc = scorerList(c);
+    h += snapCard('st-sc', `${ic('fire')}Golgheterii competiției`, sc.length ? scorerTable(c, sc.slice(0, 30)) : emptyBox('ball', 'Nu există marcatori introduși. Adaugă-i din editarea fiecărui meci.'), {title: 'Golgheteri'});
+  } else if (tab === 'teams'){
+    if (!rows.length) return h + emptyBox('chart', 'Statisticile apar după primele rezultate.');
+    const avg = (r, k) => r.P ? r[k] / r.P : 0;
+    h += `<div class="grid g3">
+      ${leaderCard(c, 'st-att', 'Cel mai bun atac', 'fire', [...rows].sort((a, b) => b.GF - a.GF || a.P - b.P), r => r.GF)}
+      ${leaderCard(c, 'st-def', 'Cea mai bună apărare', 'shield', [...rows].sort((a, b) => a.GA - b.GA || b.P - a.P), r => r.GA)}
+      ${leaderCard(c, 'st-gd', 'Cel mai bun golaveraj', 'chart', [...rows].sort((a, b) => b.GD - a.GD), r => r.GD, sign)}
+      ${leaderCard(c, 'st-w', 'Cele mai multe victorii', 'trophy', [...rows].sort((a, b) => b.W - a.W || a.P - b.P), r => r.W)}
+      ${leaderCard(c, 'st-cs', 'Meciuri fără gol primit', 'lock', [...rows].sort((a, b) => b.cs - a.cs), r => r.cs)}
+      ${leaderCard(c, 'st-ppg', 'Puncte / meci', 'star', [...rows].sort((a, b) => avg(b, 'Pts') - avg(a, 'Pts')), r => avg(r, 'Pts'), v => v.toFixed(2))}
+    </div><div style="height:18px"></div>`;
+    const maxG = Math.max(1, ...rows.map(r => r.GF));
+    h += snapCard('st-goals', `${ic('chart')}Goluri marcate pe echipă`, [...rows].sort((a, b) => b.GF - a.GF).map(r => `<div class="hbar"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(TM(c, r.id).name)}</span><div class="b"><i style="width:${r.GF / maxG * 100}%"></i></div><b class="r">${r.GF}</b></div>`).join(''), {title: 'Goluri marcate pe echipă'});
+    h += `<div style="height:18px"></div>` + snapCard('st-all', `${ic('table')}Clasament general (toate fazele)`, tableHTML(c, rows, {noLegend: true}), {title: 'Clasament general'});
+  } else if (tab === 'matches'){
+    const L = (id, t, list) => snapCard(id, `${ic('ball')}${t}`, list.length ? `<div class="mlist">${list.map(m => matchRow(c, m, {meta: true, ro: true})).join('')}</div>` : '<div class="muted small">—</div>', {title: t});
+    h += `<div class="grid g2">${L('st-big', 'Cele mai mari victorii', st.biggest.filter(m => m.hs !== m.as))}${L('st-high', 'Cele mai spectaculoase meciuri', st.highest)}</div>`;
+  } else {
+    if (!rows.length) return h + emptyBox('chart', 'Statisticile apar după primele rezultate.');
+    h += snapCard('st-form', `${ic('bolt')}Forma & seriile`, `<div class="tw"><table class="tbl"><thead><tr><th>Echipă</th><th>Ultimele 5</th><th class="c">Neînvinsă (acum)</th><th class="c">Victorii la rând (acum)</th><th class="c">Record neînvinsă</th><th class="c">Record victorii</th></tr></thead><tbody>
+      ${[...rows].sort((a, b) => st.streak[b.id].curUn - st.streak[a.id].curUn || b.Pts - a.Pts).map(r => { const s = st.streak[r.id]; return `<tr><td>${teamHTML(c, r.id, {s: 24})}</td><td><span class="form">${r.form.map(f => `<b class="${f}">${f === 'W' ? 'V' : f === 'D' ? 'E' : 'Î'}</b>`).join('')}</span></td><td class="c b">${s.curUn}</td><td class="c b">${s.curW}</td><td class="c">${s.bestUn}</td><td class="c">${s.bestW}</td></tr>`; }).join('')}</tbody></table></div>`, {title: 'Forma & seriile'});
+  }
+  return h;
+}
+
+/* ---------- profil echipă ---------- */
+function viewTeam(c){
+  const t = TM(c, ui.route.id); if (!t) return emptyBox('users', 'Echipa nu există.');
+  const list = ms(c).filter(m => m.home === t.id || m.away === t.id).sort((a, b) => stageRank(a) - stageRank(b) || mOrder(a, b));
+  const r = table(c, [t.id], list.filter(m => m.played), {mode: 'gd'})[0];
+  let pos = '';
+  if (c.type === 'ucl'){ const x = uclTable(c).find(z => z.id === t.id); pos = x ? x.pos + '. în faza ligii' : ''; }
+  else if (c.type === 'league' && t.div){ const x = divTable(c, t.div).find(z => z.id === t.id); pos = x ? `${x.pos}. în ${c.settings[t.div === 'd1' ? 'div1' : 'div2']}` : ''; }
+  else if (c.type === 'wc' && t.group){ const x = groupTable(c, t.group).find(z => z.id === t.id); pos = x ? `${x.pos}. în Grupa ${t.group}` : ''; }
+  const sc = scorerList(c).filter(s => s.tid === t.id);
+  let h = `<div class="row" style="margin-bottom:14px"><button class="btn ghost sm" onclick="history.back()">${ic('back')}Înapoi</button></div>
+    <div class="hero" id="team-hero">${logoHTML(t, 96)}<div style="flex:1"><h2>${esc(t.name)}</h2><div class="muted">${esc(t.manager || '')}</div>
+    <div class="meta">${pos ? `<span class="chip acc">${esc(pos)}</span>` : ''}${t.deduct ? `<span class="chip bad">Penalizare −${t.deduct} pct</span>` : ''}</div></div>
+    ${ED(c, `<button class="btn" data-act="editTeam" data-id="${t.id}">${ic('edit')}Editează</button>`)}</div>`;
+  h += `<div class="grid g4" style="margin-bottom:18px">${kpi(r.P, 'Meciuri')}${kpi(`${r.W}<span class="dim" style="font-size:18px">-${r.D}-${r.L}</span>`, 'V-E-Î')}${kpi(`${r.GF}:${r.GA}`, 'Goluri')}${kpi(r.cs, 'Fără gol primit')}</div>`;
+  h += `<div class="grid g21">${snapCard('tm-ms', `${ic('cal')}Meciuri`, list.length ? `<div class="mlist">${list.map(m => matchRow(c, m, {meta: true})).join('')}</div>` : emptyBox('cal', 'Niciun meci.'), {title: 'Meciurile echipei ' + t.name})}
+    ${snapCard('tm-sc', `${ic('fire')}Marcatori`, sc.length ? `<div class="lead">${sc.map((s, i) => `<div class="li"><span class="pos">${i + 1}</span><b>${esc(s.name)}</b><span class="v">${s.g}</span></div>`).join('')}</div>` : '<div class="muted small">Niciun marcator introdus.</div>', {title: 'Marcatori ' + t.name})}</div>`;
+  return h;
+}
+
+/* ---------- regulament / setări ---------- */
+function rulesText(c){
+  const s = c.settings, pts = `Victorie ${s.ptsWin} puncte, egal ${s.ptsDraw}, înfrângere ${s.ptsLoss}.`;
+  if (c.type === 'ucl') return [
+    `<b>Faza ligii.</b> Toate echipele sunt într-un singur clasament. Fiecare echipă joacă ${s.matchesPerTeam} meciuri cu ${s.matchesPerTeam} adversari diferiți (${s.matchesPerTeam / 2} acasă, ${s.matchesPerTeam / 2} în deplasare): câte doi adversari din fiecare din cele ${s.matchesPerTeam / 2} urne, unul acasă și unul în deplasare.`,
+    pts, `<b>Departajare:</b> ${TB_LABEL[s.tiebreak]}.`,
+    `<b>Calificare:</b> locurile 1–${s.direct} direct în ${roundName(s.playoff ? 2 * s.direct : s.direct).toLowerCase()}.${s.playoff ? ` Locurile ${+s.direct + 1}–${3 * s.direct} joacă play-off eliminatoriu (${s.playoffLegs == 2 ? 'tur-retur' : 'meci unic'}): capii de serie ${+s.direct + 1}–${2 * s.direct} întâlnesc echipele de pe ${2 * s.direct + 1}–${3 * s.direct} și joacă returul acasă. Restul echipelor sunt eliminate.` : ''}`,
+    `<b>Tabloul eliminatoriu</b> este stabilit după clasament (perechi ${s.pairDraw ? 'trase la sorți în cadrul perechilor de locuri, ca la UEFA' : 'fixe'}): locurile 1–2 întâlnesc câștigătoarele dublelor ${2 * s.direct}/${2 * s.direct + 1}, etc. Locurile 1 și 2 sunt în jumătăți opuse și se pot întâlni doar în finală.`,
+    `<b>Eliminatorii:</b> ${s.koLegs == 2 ? 'tur-retur, echipa mai bine clasată joacă returul acasă' : 'meci unic'}; finala ${s.finalLegs == 2 ? 'tur-retur' : 'meci unic pe teren neutru'}. Fără regula golului în deplasare: la egalitate la general se joacă prelungiri și penalty-uri.`];
+  if (c.type === 'wc') return [
+    `<b>Faza grupelor.</b> Grupe de câte ${s.groupSize} echipe, ${s.groupLegs == 2 ? 'tur-retur' : 'fiecare cu fiecare, un singur meci'}. Echipele sunt distribuite din urne (câte una din fiecare urnă în fiecare grupă).`,
+    pts, `<b>Departajare în grupă:</b> ${TB_LABEL[s.tiebreak]}.`,
+    `<b>Calificare:</b> primele ${s.advance} din fiecare grupă${wcThirdsPreview(c) ? ',' + wcThirdsPreview(c).replace(' + ', ' plus ') : ''} (departajate după puncte, golaveraj, goluri marcate). Dacă numărul calificatelor nu e putere a lui 2, cele mai bine clasate primesc calificare directă în turul următor.`,
+    `<b>Eliminatorii:</b> ${s.koLegs == 2 ? 'tur-retur' : 'meci unic'}; la egalitate prelungiri și penalty-uri. ${s.thirdPlace ? 'Se joacă finala mică pentru locul 3. ' : ''}Finala ${s.finalLegs == 2 ? 'tur-retur' : 'meci unic'}.`];
+  return [
+    `<b>Două ligi:</b> ${esc(s.div1)} și ${esc(s.div2)}. Numărul de echipe e liber (10, 11, 20…) și se pot adăuga echipe oricând, în oricare ligă. Cu număr impar de echipe, câte o echipă stă în fiecare etapă.`,
+    `Fiecare echipă joacă cu fiecare din liga sa ${s.legs == 2 ? 'de două ori (tur-retur)' : s.legs == 1 ? 'o dată' : s.legs + ' ori'}.`, pts,
+    `<b>Departajare:</b> ${TB_LABEL[s.tiebreak]}.`,
+    `<b>${esc(s.div1)}:</b> ultimele ${s.relegDirect} echipe retrogradează direct${s.relegPlayoff ? `; echipa de pe locul ${s.relegDirect + 1} de la coadă joacă baraj` : ''}.`,
+    `<b>${esc(s.div2)}:</b> primele ${s.promoDirect} promovează direct${s.promoPlayoff ? `; locul ${+s.promoDirect + 1} joacă baraj cu echipa de baraj din ${esc(s.div1)}` : ''}.`,
+    `<b>Baraj:</b> ${s.playoffLegs == 2 ? 'tur-retur, echipa din ' + esc(s.div1) + ' joacă returul acasă' : 'meci unic'}; la egalitate penalty-uri. Câștigătoarea joacă sezonul următor în ${esc(s.div1)}.`];
+}
+function viewRules(c){
+  let h = `<div class="ph"><div><h2>Regulament</h2><p>${esc(TYPES[c.type].long)}</p></div></div>`;
+  h += snapCard('rules', `${ic('info')}Regulamentul competiției`, `<div style="display:flex;flex-direction:column;gap:10px;line-height:1.6">${rulesText(c).map(p => `<div>${p}</div>`).join('')}</div>`, {title: 'Regulament', style: 'margin-bottom:18px'});
+  if (!isAdmin()) return h;
+  h += `<div class="card" style="margin-bottom:18px"><h3>${ic('cog')}Setări</h3><div id="setForm">${settingsForm(c)}</div>
+    <div class="row"><button class="btn primary" data-act="saveSettings">${ic('check')}Salvează setările</button><span class="muted small">Modificările se aplică imediat clasamentelor.</span></div></div>`;
+  h += `<div class="card"><h3>${ic('shield')}Acțiuni competiție</h3><div class="row">
+    <button class="btn" data-act="toggleStatus">${c.status === 'incheiat' ? ic('undo') + 'Redeschide competiția' : ic('lock') + 'Marchează ca încheiată'}</button>
+    <button class="btn" data-act="exportComp">${ic('down')}Exportă JSON</button>
+    <button class="btn" data-act="dupComp">${ic('copy')}Duplică (fără rezultate)</button>
+    <span class="sp"></span>
+    <button class="btn danger" data-act="resetComp">${ic('undo')}Șterge toate meciurile</button>
+    <button class="btn danger" data-act="delComp">${ic('trash')}Șterge competiția</button></div></div>`;
+  return h;
+}
+function fld(label, inner, hint = ''){ return `<div class="fg"><label>${label}</label>${inner}${hint ? `<span class="hint">${hint}</span>` : ''}</div>`; }
+const numIn = (k, v, min = 0, max = 99) => `<input class="in" type="number" name="${k}" value="${v}" min="${min}" max="${max}">`;
+const selIn = (k, v, opts) => `<select class="in" name="${k}">${opts.map(([a, b]) => `<option value="${a}" ${String(v) === String(a) ? 'selected' : ''}>${b}</option>`).join('')}</select>`;
+const chk = (k, v, l) => `<label class="check"><input type="checkbox" name="${k}" ${v ? 'checked' : ''}>${l}</label>`;
+function settingsForm(c, typeOverride){
+  const type = typeOverride || c.type, s = c ? c.settings : {...DEFAULTS.common, ...DEFAULTS[type]};
+  let h = `<div class="grid g3">${fld('Puncte victorie', numIn('ptsWin', s.ptsWin))}${fld('Puncte egal', numIn('ptsDraw', s.ptsDraw))}${fld('Puncte înfrângere', numIn('ptsLoss', s.ptsLoss, -9))}</div>`;
+  h += fld('Criterii de departajare', selIn('tiebreak', s.tiebreak, [['ucl', 'UEFA (golaveraj, goluri, goluri în deplasare, victorii…)'], ['h2h', 'Meciuri directe întâi (La Liga / FIFA)'], ['gd', 'Golaveraj general întâi (Premier League)']]));
+  if (type === 'ucl') h += `<div class="grid g3">
+    ${fld('Meciuri pe echipă (faza ligii)', selIn('matchesPerTeam', s.matchesPerTeam, [[2, '2'], [4, '4'], [6, '6'], [8, '8 (UCL)'], [10, '10'], [12, '12']]), 'Urne = meciuri / 2')}
+    ${fld('Calificate direct', selIn('direct', s.direct, [[2, '2'], [4, '4'], [8, '8 (UCL)'], [16, '16']]))}
+    ${fld('Play-off eliminatoriu', selIn('playoff', s.playoff ? 1 : 0, [[1, 'Da (locurile direct+1 … 3×direct)'], [0, 'Nu']]))}
+    ${fld('Play-off', selIn('playoffLegs', s.playoffLegs, [[2, 'Tur-retur'], [1, 'Meci unic']]))}
+    ${fld('Eliminatorii', selIn('koLegs', s.koLegs, [[2, 'Tur-retur'], [1, 'Meci unic']]))}
+    ${fld('Finala', selIn('finalLegs', s.finalLegs, [[1, 'Meci unic'], [2, 'Tur-retur']]))}</div>${chk('pairDraw', s.pairDraw, 'Tragere la sorți în cadrul perechilor de locuri (ca la UEFA: 1/2, 3/4…)')}`;
+  if (type === 'wc') h += `<div class="grid g3">
+    ${fld('Echipe pe grupă', numIn('groupSize', s.groupSize, 2, 12))}
+    ${fld('Număr de grupe', numIn('groups', s.groups, 0, 26), '0 = automat')}
+    ${fld('Se califică din fiecare grupă', numIn('advance', s.advance, 1, 8))}
+    ${fld('Cele mai bune locuri următoare', numIn('thirds', s.thirds, -1, 26), '-1 = automat (completează tabloul)')}
+    ${fld('Grupe', selIn('groupLegs', s.groupLegs, [[1, 'Un meci'], [2, 'Tur-retur']]))}
+    ${fld('Eliminatorii', selIn('koLegs', s.koLegs, [[1, 'Meci unic'], [2, 'Tur-retur']]))}
+    ${fld('Finala', selIn('finalLegs', s.finalLegs, [[1, 'Meci unic'], [2, 'Tur-retur']]))}</div>${chk('thirdPlace', s.thirdPlace, 'Se joacă finala mică (locul 3)')}`;
+  if (type === 'league') h += `<div class="grid g3">
+    ${fld('Nume liga 1', `<input class="in" name="div1" value="${esc(s.div1)}">`)}${fld('Nume liga 2', `<input class="in" name="div2" value="${esc(s.div2)}">`)}
+    ${fld('Meciuri între 2 echipe', selIn('legs', s.legs, [[1, '1 (tur)'], [2, '2 (tur-retur)'], [3, '3'], [4, '4']]))}
+    ${fld('Retrogradează direct (L1)', numIn('relegDirect', s.relegDirect))}${fld('Baraj menținere (L1)', numIn('relegPlayoff', s.relegPlayoff))}
+    ${fld('Promovează direct (L2)', numIn('promoDirect', s.promoDirect))}${fld('Baraj promovare (L2)', numIn('promoPlayoff', s.promoPlayoff))}
+    ${fld('Baraj', selIn('playoffLegs', s.playoffLegs, [[2, 'Tur-retur'], [1, 'Meci unic']]))}</div>`;
+  h += chk('autoKO', s.autoKO, 'Creează automat meciurile eliminatorii când se cunosc echipele') + chk('showScorers', s.showScorers, 'Afișează marcatorii la meciuri');
+  return h;
+}
+function readSettings(root, type){
+  const s = {}; const D = {...DEFAULTS.common, ...DEFAULTS[type]};
+  Object.keys(D).forEach(k => {
+    const el = root.querySelector(`[name="${k}"]`); if (!el) return;
+    if (el.type === 'checkbox') s[k] = el.checked;
+    else if (typeof D[k] === 'boolean') s[k] = el.value === '1';
+    else if (typeof D[k] === 'number') s[k] = numOr(el.value, D[k]);
+    else s[k] = el.value.trim() || D[k];
+  });
+  return s;
+}
+
+/* ---------- administrare ---------- */
+function viewAdmin(){
+  const admins = Object.entries(DB.admins);
+  let h = `<div class="ph"><div><h2>Administrare</h2><p>Conturi, copii de siguranță și jurnalul modificărilor.</p></div></div><div class="grid g2">`;
+  h += `<div class="card"><h3>${ic('users')}Administratori<span class="sp"></span>${isSuper() ? `<button class="btn sm primary" data-act="addAdmin">${ic('plus')}Adaugă</button>` : ''}</h3>
+    <div class="mlist">${admins.map(([id, a]) => `<div class="match" style="grid-template-columns:auto 1fr auto"><div class="logo lph" style="width:34px;height:34px;background:linear-gradient(135deg,var(--acc),var(--acc2));border-radius:10px;font-size:13px">${esc(initials(a.name))}</div><div><b>${esc(a.name)}</b><div class="small muted">${a.role === 'super' ? 'Administrator principal' : 'Administrator'}</div></div>
+      <div class="meta">${id === auth.id ? `<button class="btn sm" data-act="chPass">Schimbă parola</button>` : isSuper() ? `<button class="btn sm" data-act="resetPass" data-id="${id}">Resetează parola</button><button class="ib danger" data-act="delAdmin" data-id="${id}">${ic('trash', 16)}</button>` : ''}</div></div>`).join('')}</div></div>`;
+  h += `<div class="card"><h3>${ic('down')}Copii de siguranță</h3><p class="muted" style="margin-top:0">Exportă periodic toate datele (competiții, echipe, logo-uri, rezultate) într-un fișier JSON. Poți importa o competiție exportată sau un backup complet.</p>
+    <div class="row"><button class="btn" data-act="exportAll">${ic('down')}Exportă tot</button><button class="btn" data-act="importJSON">${ic('up')}Importă JSON</button></div>
+    <hr class="s"><div class="small muted">Stocare: <b>${Sync.mode === 'cloud' ? 'Firebase Realtime Database' : 'local (acest browser)'}</b> · nod <code>${DB_ROOT}</code> · ${Object.keys(DB.comps).length} competiții · ~${Math.round(JSON.stringify(DB).length / 1024)} KB</div>
+    <details style="margin-top:12px"><summary class="small" style="cursor:pointer;color:var(--acc)">Reguli Firebase necesare</summary>
+    <pre style="background:var(--bg2);padding:12px;border-radius:10px;font-size:12px;overflow:auto;border:1px solid var(--border)">{
+  "rules": {
+    "${DB_ROOT}": { ".read": true, ".write": true },
+    "${AUDIT_ROOT}": { ".read": true, ".write": true }
+  }
+}</pre><div class="small muted">Adaugă nodurile în regulile existente (Firebase Console → Realtime Database → Rules), lângă nodurile celorlalte aplicații.</div></details></div>`;
+  h += `</div><div class="card" style="margin-top:18px"><h3>${ic('clock')}Jurnal modificări</h3><div id="auditBox" class="muted small">Se încarcă…</div></div>`;
+  return h;
+}
+async function loadAudit(){
+  const box = $('#auditBox'); if (!box) return;
+  try { const l = await Sync.readAudit(); box.innerHTML = l.length ? `<div class="tw"><table class="tbl"><thead><tr><th>Când</th><th>Cine</th><th>Competiție</th><th>Acțiune</th></tr></thead><tbody>${l.map(e => `<tr><td>${fmtDate(e.at)}</td><td>${esc(e.who)}</td><td>${esc(e.comp)}</td><td style="white-space:normal">${esc(e.msg)}</td></tr>`).join('')}</tbody></table></div>` : 'Nicio intrare.'; }
+  catch { box.textContent = 'Jurnalul nu poate fi citit.'; }
+}
+
+/* =====================================================================
+   DIALOGURI, ACȚIUNI, CAPTURI, PORNIRE
+   ===================================================================== */
+function toast(msg, type = 'ok'){
+  const t = document.createElement('div'); t.className = 'toast ' + type;
+  t.innerHTML = (type === 'err' ? ic('info') : type === 'warn' ? ic('info') : ic('check')) + `<span>${esc(msg)}</span>`;
+  const box = $('#toasts'); box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => t.remove(), type === 'err' ? 6500 : 3200);
+}
+function modal(title, body, o = {}){
+  const w = document.createElement('div'); w.className = 'mb';
+  w.innerHTML = `<div class="md ${o.wide || ''}"><div class="mh"><h3>${title}</h3><button class="ib" data-x>${ic('x')}</button></div><div class="mbd">${body}</div>
+    ${o.foot === false ? '' : `<div class="mf">${o.extra || ''}<span class="sp"></span><button class="btn" data-x>${o.cancel || 'Anulează'}</button>${o.ok ? `<button class="btn ${o.danger ? 'danger' : 'primary'}" data-ok>${o.okText || 'Salvează'}</button>` : ''}</div>`}</div>`;
+  $('#modal-root').appendChild(w);
+  const close = () => { w.remove(); if (ui.pending && !$('.mb')){ ui.pending = false; render(); } };
+  w.addEventListener('click', e => { if (e.target.closest('[data-x]')) close(); });
+  if (o.ok){ const b = w.querySelector('[data-ok]'); b.onclick = async () => { b.disabled = true; try { const r = await o.ok(w); if (r !== false) close(); } finally { b.disabled = false; } }; }
+  const f = w.querySelector('input:not([type=hidden]):not([type=file]),select,textarea'); if (f && !o.noFocus) setTimeout(() => f.focus(), 60);
+  if (o.onOpen) o.onOpen(w);
+  return {el: w, close};
+}
+function confirmBox(msg, okText = 'Confirmă', danger = true){
+  return new Promise(res => { let done = false;
+    const m = modal('Confirmare', `<p style="margin:0;line-height:1.6">${msg}</p>`, {ok: () => { done = true; res(true); }, okText, danger, noFocus: true});
+    const obs = new MutationObserver(() => { if (!document.body.contains(m.el)){ obs.disconnect(); if (!done) res(false); } });
+    obs.observe($('#modal-root'), {childList: true}); });
+}
+function promptBox(title, label, val = '', o = {}){
+  return new Promise(res => { let done = false;
+    const m = modal(title, fld(label, `<input class="in" id="pIn" type="${o.type || 'text'}" value="${esc(val)}">`, o.hint || ''), {ok: w => { done = true; res(w.querySelector('#pIn').value); }, okText: o.okText || 'OK'});
+    const obs = new MutationObserver(() => { if (!document.body.contains(m.el)){ obs.disconnect(); if (!done) res(null); } });
+    obs.observe($('#modal-root'), {childList: true}); });
+}
+const need = c => { if (!canEdit(c)){ toast(isAdmin() ? 'Competiția este încheiată. Redeschide-o din Regulament.' : 'Doar administratorii pot modifica.', 'err'); return false; } return true; };
+
+/* ---------------- autentificare ---------------- */
+const passHash = p => sha256('fcm-comp|' + p);
+function setAuth(id){ const a = DB.admins[id]; Object.assign(auth, {id, name: a.name, role: a.role, h: a.hash}); try { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); } catch {} }
+function loginModal(){
+  const list = Object.entries(DB.admins);
+  if (!list.length) return setupAdmin();
+  modal('Autentificare administrator', `${fld('Administrator', `<select class="in" id="lgU">${list.map(([id, a]) => `<option value="${id}">${esc(a.name)}</option>`).join('')}</select>`)}${fld('Parolă', '<input class="in" id="lgP" type="password" autocomplete="current-password">')}`,
+    {okText: 'Intră', ok: w => {
+      const id = w.querySelector('#lgU').value, p = w.querySelector('#lgP').value;
+      if (!DB.admins[id] || DB.admins[id].hash !== passHash(p)){ toast('Parolă greșită', 'err'); return false; }
+      setAuth(id); toast('Bine ai venit, ' + auth.name + '!'); render();
+    }, onOpen: w => { const p = w.querySelector('#lgP'); setTimeout(() => p.focus(), 80); p.addEventListener('keydown', e => { if (e.key === 'Enter') w.querySelector('[data-ok]').click(); }); }});
+}
+function setupAdmin(){
+  if (Object.keys(DB.admins).length) return loginModal();
+  modal('Administrator principal', `<p class="muted" style="margin-top:0">Contul de administrator principal poate crea competiții și alți administratori.</p>
+    ${fld('Nume', '<input class="in" id="saN" placeholder="ex: Sorin">')}${fld('Parolă', '<input class="in" id="saP" type="password" autocomplete="new-password">', 'Minim 4 caractere')}${fld('Confirmă parola', '<input class="in" id="saP2" type="password">')}`,
+    {okText: 'Creează contul', ok: async w => {
+      const n = w.querySelector('#saN').value.trim(), p = w.querySelector('#saP').value;
+      if (!n || p.length < 4){ toast('Completează numele și o parolă de minim 4 caractere', 'err'); return false; }
+      if (p !== w.querySelector('#saP2').value){ toast('Parolele nu coincid', 'err'); return false; }
+      if (Object.keys(DB.admins).length){ toast('Există deja un administrator.', 'err'); return; }
+      const id = uid(); DB.admins[id] = {name: n, hash: passHash(p), role: 'super', created: Date.now()};
+      await Sync.set('admins/' + id, DB.admins[id]); setAuth(id); Sync.audit('A creat contul de administrator principal'); toast('Cont creat'); render();
+    }});
+}
+
+/* ---------------- competiții ---------------- */
+function newCompWizard(){
+  if (!isAdmin()) return loginModal();
+  const d = {step: 1, type: 'ucl', name: '', season: String(new Date().getFullYear()), logo: '', color: '', settings: null, t1: '', t2: ''};
+  const m = modal('Competiție nouă', '<div id="wz"></div>', {wide: 'wide', foot: false});
+  const W = m.el.querySelector('#wz');
+  const readStep = () => {
+    if (d.step === 2){ d.name = $('#wzN', W).value.trim(); d.season = $('#wzS', W).value.trim(); d.color = $('#wzC', W).value; }
+    if (d.step === 3) d.settings = readSettings(W, d.type);
+    if (d.step === 4){ d.t1 = $('#wzT1', W).value; const t2 = $('#wzT2', W); d.t2 = t2 ? t2.value : ''; }
+  };
+  const paint = () => {
+    const steps = ['Format', 'Detalii', 'Regulament', 'Echipe'];
+    let h = `<div class="row" style="margin-bottom:18px;gap:6px">${steps.map((s, i) => `<span class="chip ${i + 1 === d.step ? 'acc' : i + 1 < d.step ? 'ok' : ''}">${i + 1}. ${s}</span>`).join('')}</div>`;
+    if (d.step === 1) h += `<div class="grid g3">${Object.entries(TYPES).map(([k, t]) => `<button class="ctype ${d.type === k ? 'on' : ''}" data-wz="type" data-v="${k}"><div class="ic" style="background:${t.grad}">${ic(t.icon)}</div><b>${t.name}</b><p>${{
+      ucl: 'Faza ligii cu un singur clasament, 8 meciuri/echipă din 4 urne, play-off 9–24, optimi, sferturi, semifinale și finală — exact ca noul format UEFA.',
+      wc: 'Grupe trase din urne, calificare primele 2 + cele mai bune locuri 3, apoi tablou eliminatoriu cu finală mică — ca la Cupa Mondială 2026.',
+      league: 'Două ligi (ex. 10, 11 sau 20 de echipe), tur-retur, 2 retrogradează direct + baraj, 2 promovează direct + baraj. Sezoane succesive.'}[k]}</p></button>`).join('')}</div>`;
+    if (d.step === 2) h += `<div class="grid g2"><div>${fld('Nume competiție', `<input class="in" id="wzN" value="${esc(d.name || ({ucl: 'FC Mobile Champions League', wc: 'FC Mobile World Cup', league: 'FC Mobile La Liga'})[d.type])}">`)}
+      ${fld('Sezon / ediție', `<input class="in" id="wzS" value="${esc(d.season)}">`)}${fld('Culoare de accent', `<input class="in" id="wzC" type="color" value="${d.color || TYPES[d.type].color}" style="height:44px;padding:4px">`)}</div>
+      <div>${fld('Logo competiție', `<div class="logo-up"><div id="wzL">${compLogo({type: d.type, logo: d.logo}, 84)}</div><div class="row"><button class="btn" data-wz="logo">${ic('img')}Încarcă</button>${d.logo ? `<button class="btn ghost" data-wz="nologo">Elimină</button>` : ''}</div></div>`, 'PNG/JPG/WebP — se redimensionează automat.')}</div></div>`;
+    if (d.step === 3) h += `<div class="banner info">${ic('info')}Valorile implicite reproduc formatul oficial. Le poți schimba oricând din „Regulament & setări”.</div>` + settingsForm(d.settings ? {settings: {...DEFAULTS.common, ...DEFAULTS[d.type], ...d.settings}} : null, d.type);
+    if (d.step === 4){
+      const hint = 'O echipă pe linie. Opțional: <span class="kbd">Nume echipă | Jucător</span>. Poți adăuga echipe și mai târziu.';
+      h += d.type === 'league' ? `<div class="grid g2">${fld(esc((d.settings || DEFAULTS.league).div1 || 'Liga 1'), `<textarea class="in" id="wzT1" style="min-height:240px" placeholder="Real Madrid | Andrei\nBarcelona | Mihai">${esc(d.t1)}</textarea>`, hint)}${fld(esc((d.settings || DEFAULTS.league).div2 || 'Liga 2'), `<textarea class="in" id="wzT2" style="min-height:240px">${esc(d.t2)}</textarea>`)}</div>`
+        : fld('Echipe participante', `<textarea class="in" id="wzT1" style="min-height:260px" placeholder="Real Madrid | Andrei\nBarcelona | Mihai">${esc(d.t1)}</textarea>`, hint + (d.type === 'ucl' ? ' Ordinea contează pentru urne (primele = Urna 1).' : ' Ordinea contează pentru urne (primele = capi de serie).'));
+    }
+    h += `<div class="row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">${d.step > 1 ? `<button class="btn" data-wz="back">${ic('back')}Înapoi</button>` : ''}<span class="sp"></span><button class="btn" data-x>Anulează</button>
+      ${d.step < 4 ? `<button class="btn primary" data-wz="next">Continuă</button>` : `<button class="btn primary" data-wz="create">${ic('check')}Creează competiția</button>`}</div>`;
+    W.innerHTML = h;
+  };
+  W.addEventListener('click', async e => {
+    const b = e.target.closest('[data-wz]'); if (!b) return; const a = b.dataset.wz;
+    if (a === 'type'){ d.type = b.dataset.v; d.settings = null; d.step = 2; d.name = ''; paint(); }
+    if (a === 'back'){ readStep(); d.step--; paint(); }
+    if (a === 'next'){ readStep(); d.step++; paint(); }
+    if (a === 'logo'){ const f = await pickFile('image/*'); if (f){ readStep(); d.logo = await readImage(f, 256); paint(); } }
+    if (a === 'nologo'){ readStep(); d.logo = ''; paint(); }
+    if (a === 'create'){ readStep(); await createComp(d); m.close(); }
+  });
+  paint();
+}
+function parseTeamLines(txt){
+  return String(txt || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(l => { const [n, p] = l.split('|').map(x => (x || '').trim()); return {name: n, manager: p || ''}; }).filter(x => x.name);
+}
+async function createComp(d){
+  const c = {id: uid(), type: d.type, name: d.name || TYPES[d.type].name, season: d.season, logo: d.logo, color: d.color || TYPES[d.type].color,
+    settings: {...DEFAULTS.common, ...DEFAULTS[d.type], ...(d.settings || {})}, teams: {}, matches: {}, plan: [], order: {}, groups: [], ko: null, history: [], createdAt: Date.now(), status: 'activ', by: auth.name};
+  if (d.type === 'league'){ parseTeamLines(d.t1).forEach(t => newTeam(c, {...t, div: 'd1'})); parseTeamLines(d.t2).forEach(t => newTeam(c, {...t, div: 'd2'})); }
+  else { parseTeamLines(d.t1).forEach(t => newTeam(c, t)); if (Object.keys(c.teams).length) autoPots(c, 'order'); }
+  DB.comps[c.id] = normC(c); await Sync.comp(c); Sync.audit('A creat competiția', c);
+  toast('Competiția a fost creată'); go(cpath(c, 'overview'));
+}
+function editCompModal(c){
+  let logo = c.logo;
+  const m = modal('Editează competiția', `<div class="grid g2"><div>${fld('Nume', `<input class="in" id="ecN" value="${esc(c.name)}">`)}${fld('Sezon / ediție', `<input class="in" id="ecS" value="${esc(c.season || '')}">`)}${fld('Culoare accent', `<input class="in" id="ecC" type="color" value="${c.color || TYPES[c.type].color}" style="height:44px;padding:4px">`)}</div>
+    <div>${fld('Logo', `<div class="logo-up"><div id="ecL">${compLogo(c, 84)}</div><div class="row"><button class="btn" id="ecUp">${ic('img')}Încarcă</button><button class="btn ghost" id="ecRm">Elimină</button></div></div>`)}</div></div>`,
+    {wide: 'wide', ok: async w => {
+      c.name = $('#ecN', w).value.trim() || c.name; c.season = $('#ecS', w).value.trim(); c.color = $('#ecC', w).value; c.logo = logo;
+      await Sync.upd({[`comps/${c.id}/name`]: c.name, [`comps/${c.id}/season`]: c.season, [`comps/${c.id}/color`]: c.color, [`comps/${c.id}/logo`]: c.logo || null});
+      Sync.audit('A editat detaliile competiției', c); render();
+    }});
+  $('#ecUp', m.el).onclick = async () => { const f = await pickFile('image/*'); if (f){ logo = await readImage(f, 256); $('#ecL', m.el).innerHTML = compLogo({...c, logo}, 84); } };
+  $('#ecRm', m.el).onclick = () => { logo = ''; $('#ecL', m.el).innerHTML = compLogo({...c, logo: ''}, 84); };
+}
+
+/* ---------------- echipe ---------------- */
+function teamModal(c, t, preset = {}){
+  const isNew = !t; t = t || {name: '', short: '', manager: '', color: PALETTE[Object.keys(c.teams).length % PALETTE.length], logo: '', deduct: 0, ...preset};
+  let logo = t.logo;
+  const nP = c.type === 'ucl' ? c.settings.matchesPerTeam / 2 : c.settings.groupSize;
+  let extra = '';
+  if (c.type === 'league') extra = fld('Liga', selIn('div', t.div || 'd1', [['d1', esc(c.settings.div1)], ['d2', esc(c.settings.div2)]]));
+  else {
+    extra = fld('Urna', selIn('pot', t.pot || '', [['', '—'], ...Array.from({length: nP}, (_, i) => [i + 1, 'Urna ' + (i + 1)])]));
+    if (c.type === 'wc' && c.groups.length) extra += fld('Grupa', selIn('group', t.group || '', [['', isNew ? 'Automat (grupa cu cele mai puține echipe)' : '—'], ...c.groups.map(g => [g.id, g.name])]));
+  }
+  const m = modal(isNew ? 'Echipă nouă' : 'Editează echipa', `<div class="grid g2"><div>
+      ${fld('Nume echipă', `<input class="in" name="name" value="${esc(t.name)}" placeholder="ex: Real Madrid">`)}
+      ${fld('Jucător / manager', `<input class="in" name="manager" value="${esc(t.manager)}" placeholder="numele din joc">`)}
+      ${fld('Abreviere (opțional)', `<input class="in" name="short" value="${esc(t.short || '')}" maxlength="14" placeholder="ex: RMA">`)}
+      ${extra}</div><div>
+      ${fld('Logo', `<div class="logo-up"><div id="tmL">${logoHTML({...t, logo}, 84)}</div><div style="display:flex;flex-direction:column;gap:8px"><button class="btn" id="tmUp">${ic('img')}Încarcă logo</button><button class="btn ghost" id="tmRm">Elimină</button></div></div>`, 'Imaginea se încadrează automat într-un pătrat.')}
+      ${fld('Culoare (fără logo)', `<input class="in" type="color" name="color" value="${t.color || '#3b82f6'}" style="height:44px;padding:4px">`)}
+      ${fld('Penalizare puncte', `<input class="in" type="number" name="deduct" min="0" value="${t.deduct || 0}">`, 'Se scad din clasament (ex. pentru neprezentări / abateri).')}
+    </div></div>${isNew && c.type === 'ucl' && c.plan.length ? `<div class="banner">${ic('info')}Tragerea fazei ligii e deja făcută. Echipa nouă nu va avea meciuri până nu refaci tragerea (posibil doar dacă nu s-au jucat meciuri) sau adaugi meciuri manual.</div>` : ''}`,
+    {wide: 'wide', okText: isNew ? 'Adaugă echipa' : 'Salvează', ok: async w => {
+      const v = n => { const el = w.querySelector(`[name="${n}"]`); return el ? el.value.trim() : undefined; };
+      if (!v('name')){ toast('Completează numele echipei', 'err'); return false; }
+      const f = {name: v('name'), manager: v('manager'), short: v('short'), color: v('color'), logo, deduct: Math.max(0, +v('deduct') || 0)};
+      if (v('div') !== undefined) f.div = v('div');
+      if (v('pot') !== undefined) f.pot = v('pot') ? +v('pot') : null;
+      if (v('group') !== undefined) f.group = v('group') || null;
+      let team;
+      if (isNew){ team = newTeam(c, f); team.deduct = f.deduct; if (f.pot == null) delete team.pot; if (c.type === 'wc' && c.groups.length && !f.group) wcAssignNew(c, team); }
+      else { team = c.teams[t.id]; Object.assign(team, f); if (team.pot == null) delete team.pot; if (team.group == null) delete team.group; }
+      await Sync.team(c, team); Sync.audit((isNew ? 'A adăugat echipa ' : 'A editat echipa ') + team.name, c);
+      toast(isNew ? 'Echipă adăugată' : 'Echipă salvată'); render();
+    }});
+  $('#tmUp', m.el).onclick = async () => { const f = await pickFile('image/*'); if (f){ logo = await readImage(f); $('#tmL', m.el).innerHTML = logoHTML({...t, logo}, 84); } };
+  $('#tmRm', m.el).onclick = () => { logo = ''; $('#tmL', m.el).innerHTML = logoHTML({...t, logo: '', color: m.el.querySelector('[name=color]').value}, 84); };
+}
+function bulkModal(c){
+  const nP = c.type === 'ucl' ? c.settings.matchesPerTeam / 2 : c.settings.groupSize;
+  const extra = c.type === 'league' ? fld('Adaugă în', selIn('div', ui.divSel || 'd1', [['d1', esc(c.settings.div1)], ['d2', esc(c.settings.div2)]]))
+    : fld('Urna', selIn('pot', '', [['', 'Fără (le distribui după)'], ...Array.from({length: nP}, (_, i) => [i + 1, 'Urna ' + (i + 1)])]));
+  modal('Adaugă echipe în bloc', `${fld('Echipe', '<textarea class="in" id="blk" style="min-height:240px" placeholder="Real Madrid | Andrei\nBarcelona | Mihai\nBayern"></textarea>', 'O echipă pe linie. Opțional jucătorul după bara verticală: <span class="kbd">Echipă | Jucător</span>')}${extra}`,
+    {wide: 'wide', okText: 'Adaugă', ok: async w => {
+      const L = parseTeamLines($('#blk', w).value); if (!L.length){ toast('Nicio echipă introdusă', 'err'); return false; }
+      const dv = w.querySelector('[name=div]'), pt = w.querySelector('[name=pot]');
+      const existing = new Set(teams(c).map(t => t.name.toLowerCase()));
+      let n = 0, dup = 0;
+      L.forEach(x => { if (existing.has(x.name.toLowerCase())){ dup++; return; } const t = newTeam(c, {...x, div: dv ? dv.value : undefined, pot: pt && pt.value ? +pt.value : undefined}); n++; if (c.type === 'wc' && c.groups.length) wcAssignNew(c, t); });
+      await Sync.comp(c); Sync.audit(`A adăugat ${n} echipe`, c);
+      toast(`${n} echipe adăugate` + (dup ? ` (${dup} existau deja)` : '')); render();
+    }});
+}
+async function delTeam(c, id){
+  const t = c.teams[id]; const L = ms(c).filter(m => m.home === id || m.away === id);
+  if (!await confirmBox(`Ștergi echipa <b>${esc(t.name)}</b>?${L.length ? ` Se vor șterge și cele <b>${L.length}</b> meciuri ale ei (${L.filter(m => m.played).length} jucate).` : ''}`, 'Șterge echipa')) return;
+  L.forEach(m => delete c.matches[m.id]); delete c.teams[id];
+  c.plan = c.plan.filter(p => p.h !== id && p.a !== id);
+  Object.keys(c.order).forEach(k => c.order[k] = c.order[k].filter(x => x !== id));
+  await Sync.comp(c); Sync.audit('A șters echipa ' + t.name, c); toast('Echipă ștearsă'); if (ui.route.v === 'team') go(cpath(c, 'teams')); else render();
+}
+
+/* ---------------- meciuri ---------------- */
+async function afterResult(c, m){
+  if (c.ko && c.settings.autoKO){
+    const r = ensureKO(c);
+    if (r.created.length || r.changed.length || r.removed.length){ await Sync.matches(c, [...r.created, ...r.changed], r.removed); if (r.created.length) toast(`${r.created.length} meciuri eliminatorii create`); }
+  }
+  if (m && m.tie){ const f = findTie(c, m.tie); if (f){ const st = tieState(c, f.tie); if (st.needPens) toast('Egalitate la general — introdu penalty-urile la ultimul meci al dublei.', 'warn'); } }
+}
+async function quickSave(c, id){
+  const box = document.querySelector(`[data-mid="${id}"]`); if (!box) return;
+  const hs = numOr(box.querySelector('[data-k=hs]').value), as = numOr(box.querySelector('[data-k=as]').value);
+  if (hs == null || as == null || hs < 0 || as < 0){ toast('Completează ambele scoruri', 'err'); return; }
+  const m = c.matches[id]; Object.assign(m, {hs, as, played: true, playedAt: Date.now(), by: auth.name});
+  await Sync.match(c, m); Sync.audit(`Rezultat ${TM(c, m.home)?.name} ${hs}-${as} ${TM(c, m.away)?.name}`, c);
+  toast('Rezultat salvat'); await afterResult(c, m); render();
+  if (m.tie && hs === as){ const f = findTie(c, m.tie); if (f && tieState(c, f.tie).needPens) matchModal(c, id); }
+}
+function scorerRows(list, side, names){
+  return (list.length ? list : []).map(s => `<div class="sr"><input class="in sm" style="width:100%" data-sn="${side}" list="dl-${side}" value="${esc(s.n)}" placeholder="Jucător"><input class="in sm" style="width:100%" type="number" min="1" data-sg="${side}" value="${s.g || 1}"><button class="ib danger" data-rmsc>${ic('x', 15)}</button></div>`).join('');
+}
+function matchModal(c, id){
+  const m = c.matches[id]; if (!m) return;
+  const ko = m.stage === 'ko' || m.stage === 'playoff';
+  const names = side => [...new Set(scorerList(c).filter(s => s.tid === (side === 'h' ? m.home : m.away)).map(s => s.name))];
+  const sideBox = side => `<div><div class="row between" style="margin-bottom:8px">${teamHTML(c, side === 'h' ? m.home : m.away, {s: 26, link: false})}<button class="btn sm" data-addsc="${side}">${ic('plus', 14)}Marcator</button></div>
+    <div class="scorers" id="sc-${side}">${scorerRows(m.sc[side], side)}</div><datalist id="dl-${side}">${names(side).map(n => `<option value="${esc(n)}">`).join('')}</datalist></div>`;
+  const body = `<div class="match" style="grid-template-columns:1fr auto 1fr;margin-bottom:18px;background:var(--panel)">
+      <div class="h">${teamHTML(c, m.home, {s: 40, link: false})}</div>
+      <div class="score"><input type="number" min="0" id="mH" value="${m.hs ?? ''}"><span class="dim">:</span><input type="number" min="0" id="mA" value="${m.as ?? ''}"></div>
+      <div>${teamHTML(c, m.away, {s: 40, link: false})}</div></div>
+    ${ko ? `<div class="grid g2">${fld('Penalty-uri gazde', `<input class="in" type="number" min="0" id="mPH" value="${m.ph ?? ''}">`, 'Doar dacă scorul la general e egal după prelungiri')}${fld('Penalty-uri oaspeți', `<input class="in" type="number" min="0" id="mPA" value="${m.pa ?? ''}">`)}</div>` : ''}
+    <div class="grid g2">${fld('Data și ora', `<input class="in" type="datetime-local" id="mD" value="${esc(m.date || '')}">`)}${fld('Etapă', `<input class="in" ${ko ? 'disabled' : ''} type="number" min="1" id="mR" value="${m.round || 1}">`, ko ? esc(m.rlabel || '') : 'Poți muta meciul în altă etapă')}</div>
+    <div class="row" style="margin-bottom:16px"><span class="muted small">Neprezentare:</span><button class="btn sm" data-ff="h">${esc(shortName(TM(c, m.home)))} câștigă 3-0</button><button class="btn sm" data-ff="a">${esc(shortName(TM(c, m.away)))} câștigă 3-0</button></div>
+    ${c.settings.showScorers ? `<hr class="s"><div class="small muted" style="margin-bottom:10px;font-weight:700">MARCATORI (opțional)</div><div class="grid g2">${sideBox('h')}${sideBox('a')}</div>` : ''}`;
+  const md = modal(`${esc(roundLabel(c, m))}${m.group ? ' · Grupa ' + esc(m.group) : ''}`, body, {wide: 'wide',
+    extra: `<button class="btn danger" id="mDel">${ic('trash')}Șterge meciul</button>${m.played ? `<button class="btn" id="mReset">${ic('undo')}Resetează rezultatul</button>` : ''}${!m.played && !ko ? `<button class="btn ghost" id="mSwap">${ic('swap')}Inversează gazda</button>` : ''}`,
+    ok: async w => {
+      const hs = numOr($('#mH', w).value), as = numOr($('#mA', w).value);
+      if ((hs == null) !== (as == null)){ toast('Completează ambele scoruri sau lasă-le goale', 'err'); return false; }
+      const sc = {h: [], a: []};
+      ['h', 'a'].forEach(s => { const ns = $$(`[data-sn="${s}"]`, w), gs = $$(`[data-sg="${s}"]`, w); ns.forEach((el, i) => { const n = el.value.trim(); if (n) sc[s].push({n, g: Math.max(1, +gs[i].value || 1)}); }); });
+      if (hs != null && (sum(sc.h, x => x.g) > hs || sum(sc.a, x => x.g) > as)){ toast('Golurile marcatorilor depășesc scorul', 'err'); return false; }
+      let ph = null, pa = null;
+      if (ko){ ph = numOr($('#mPH', w).value); pa = numOr($('#mPA', w).value); if ((ph == null) !== (pa == null) || (ph != null && (hs !== as || ph === pa))){ if (ph != null || pa != null){ toast(hs !== as ? 'Penalty-urile se introduc doar la egalitate' : 'Penalty-urile trebuie să aibă un câștigător', 'err'); return false; } } }
+      Object.assign(m, {hs, as, played: hs != null, ph, pa, sc, date: $('#mD', w).value, forfeit: m._ff && hs != null ? true : (hs == null ? false : m.forfeit || false)});
+      if (!ko) m.round = Math.max(1, +$('#mR', w).value || m.round || 1);
+      if (m.played && !m.playedAt) m.playedAt = Date.now();
+      delete m._ff;
+      await Sync.match(c, m); Sync.audit(`Meci ${TM(c, m.home)?.name} ${hs ?? '-'}-${as ?? '-'} ${TM(c, m.away)?.name} (editat)`, c);
+      toast('Meci salvat'); await afterResult(c, m); render();
+    }});
+  const w = md.el;
+  w.addEventListener('click', e => {
+    const a = e.target.closest('[data-addsc]'); if (a){ const s = a.dataset.addsc; $('#sc-' + s, w).insertAdjacentHTML('beforeend', scorerRows([{n: '', g: 1}], s)); $('#sc-' + s, w).lastElementChild.querySelector('input').focus(); }
+    const r = e.target.closest('[data-rmsc]'); if (r) r.parentElement.remove();
+    const f = e.target.closest('[data-ff]'); if (f){ $('#mH', w).value = f.dataset.ff === 'h' ? 3 : 0; $('#mA', w).value = f.dataset.ff === 'h' ? 0 : 3; m._ff = true; toast('Scor 3-0 setat — apasă Salvează'); }
+  });
+  const del = $('#mDel', w); del.onclick = async () => {
+    if (!await confirmBox('Ștergi definitiv acest meci?', 'Șterge')) return;
+    delete c.matches[m.id]; await Sync.set(`comps/${c.id}/matches/${m.id}`, null); Sync.audit('A șters un meci', c); md.close(); render();
+  };
+  const rs = $('#mReset', w); if (rs) rs.onclick = async () => {
+    Object.assign(m, {hs: null, as: null, ph: null, pa: null, played: false, forfeit: false, playedAt: null});
+    await Sync.match(c, m); Sync.audit('A resetat un rezultat', c); md.close(); await afterResult(c, m); render();
+  };
+  const sw = $('#mSwap', w); if (sw) sw.onclick = async () => { [m.home, m.away] = [m.away, m.home]; await Sync.match(c, m); md.close(); render(); };
+}
+function viewMatchModal(c, id){
+  const m = c.matches[id]; if (!m) return;
+  const side = s => (m.sc[s] || []).map(x => `<div class="row" style="margin-bottom:4px">${ic('ball', 14)}<span>${esc(x.n)}${x.g > 1 ? ` <b>×${x.g}</b>` : ''}</span></div>`).join('') || '<div class="dim small">—</div>';
+  const body = `<div id="mv" class="card" style="background:var(--panel)"><div class="snap-head"></div>
+    <div class="match" style="grid-template-columns:1fr auto 1fr;border:0;background:none">${`<div class="h">${teamHTML(c, m.home, {s: 46, link: false})}</div>`}
+    <div>${m.played ? `<div class="score"><span class="s" style="min-width:48px;height:48px;font-size:28px">${m.hs}</span><span class="dim">:</span><span class="s" style="min-width:48px;height:48px;font-size:28px">${m.as}</span></div>${m.ph != null ? `<div class="pens">pen. ${m.ph}–${m.pa}</div>` : ''}` : '<span class="vs dim">vs</span>'}</div>
+    <div>${teamHTML(c, m.away, {s: 46, link: false})}</div></div>
+    <div class="row between small muted" style="margin:8px 4px 12px"><span>${esc(roundLabel(c, m))}${m.group ? ' · Grupa ' + esc(m.group) : ''}</span><span>${esc(fmtDay(m.date))}</span></div>
+    <div class="grid g2"><div style="text-align:right" class="sch">${side('h').replace(/class="row"/g, 'class="row" style="justify-content:flex-end;margin-bottom:4px"')}</div><div>${side('a')}</div></div><div class="snap-foot"></div></div>`;
+  modal('Detalii meci', body, {wide: 'wide', extra: `<button class="btn" data-act="snap" data-id="mv">${ic('cam')}Captură</button>`});
+}
+function addMatchModal(c){
+  const ph = ui.mf.phase || phases(c)[0][0];
+  if (ph === 'ko' || ph === 'playoff'){ toast('Meciurile eliminatorii se generează din tablou (butonul „Generează meciurile”).', 'warn'); return; }
+  const opts = teams(c).map(t => [t.id, esc(t.name)]);
+  let extra = '';
+  if (c.type === 'league') extra = fld('Liga', selIn('div', ph === 'd2' ? 'd2' : 'd1', [['d1', esc(c.settings.div1)], ['d2', esc(c.settings.div2)]]));
+  if (c.type === 'wc') extra = fld('Grupa', selIn('group', ui.mf.group || (c.groups[0] || {}).id || '', c.groups.map(g => [g.id, g.name])));
+  modal('Meci manual', `<div class="grid g2">${fld('Gazde', selIn('home', '', opts))}${fld('Oaspeți', selIn('away', opts[1] ? opts[1][0] : '', opts))}</div><div class="grid g2">${fld('Etapa', numIn('round', 1, 1, 999))}${extra || '<div></div>'}</div>${fld('Data (opțional)', '<input class="in" type="datetime-local" name="date">')}`,
+    {okText: 'Adaugă meciul', ok: async w => {
+      const g = n => { const el = w.querySelector(`[name="${n}"]`); return el ? el.value : ''; };
+      if (!g('home') || g('home') === g('away')){ toast('Alege două echipe diferite', 'err'); return false; }
+      const f = {home: g('home'), away: g('away'), round: Math.max(1, +g('round') || 1), date: g('date'), manual: true};
+      if (c.type === 'ucl') f.stage = 'league';
+      if (c.type === 'league'){ f.stage = 'league'; f.div = g('div'); }
+      if (c.type === 'wc'){ if (!c.groups.length){ toast('Trage la sorți grupele întâi', 'err'); return false; } f.stage = 'group'; f.group = g('group'); }
+      const m = newMatch(c, f); await Sync.match(c, m); Sync.audit('A adăugat un meci manual', c); toast('Meci adăugat'); render();
+    }});
+}
+function tieModal(c, id){
+  const f = findTie(c, id); if (!f) return; const {tie, round} = f; const st = tieState(c, tie);
+  const e = canEdit(c);
+  let body = `<div class="small muted" style="margin-bottom:12px">${esc(round.name)} · ${tie.legs === 2 ? 'tur-retur (echipa mai bine clasată joacă returul acasă)' : 'meci unic'}</div>`;
+  body += st.ms.length ? `<div class="mlist">${st.ms.map(m => matchRow(c, m, {ro: !e})).join('')}</div>` : `<div class="empty" style="padding:20px">${st.A && st.B ? 'Meciurile nu sunt generate încă.' : 'Echipele nu sunt cunoscute încă.'}${e && st.A && st.B ? `<div style="margin-top:10px"><button class="btn primary sm" data-act="genKO">${ic('bolt')}Generează</button></div>` : ''}</div>`;
+  if (st.started) body += `<div class="row" style="margin-top:14px"><span class="chip acc">General: ${st.ga} – ${st.gb}</span>${st.pa != null ? `<span class="chip">pen. ${st.pa} – ${st.pb}</span>` : ''}${st.winner ? `<span class="chip ok">Se califică: ${esc(TM(c, st.winner)?.name)}</span>` : st.needPens ? '<span class="chip warn">Egal — introdu penalty-urile</span>' : ''}</div>`;
+  if (e && st.A && st.B) body += `<hr class="s">${fld('Decizie administrativă (neprezentare, descalificare…)', selIn('manual', tie.manual || '', [['', 'Automat (după scor)'], [st.A, 'Se califică ' + esc(TM(c, st.A).name)], [st.B, 'Se califică ' + esc(TM(c, st.B).name)]]))}`;
+  const md = modal('Dublă eliminatorie', body, {wide: 'wide', ok: e && st.A && st.B ? async w => {
+    tie.manual = w.querySelector('[name=manual]').value || null; await Sync.comp(c); await afterResult(c, null); Sync.audit('A modificat decizia unei duble', c); render(); } : null});
+  ui.tieModal = md;
+}
+
+/* ---------------- tragere / generare / eliminatorii ---------------- */
+async function doDraw(c){
+  const N = Object.keys(c.teams).length;
+  if (N < 3){ toast('Adaugă cel puțin 3 echipe', 'err'); return; }
+  const stage = c.type === 'ucl' ? 'league' : 'group';
+  const L = ms(c).filter(m => m.stage === stage);
+  if (L.some(m => m.played)){ toast('S-au jucat meciuri — tragerea nu mai poate fi refăcută.', 'err'); return; }
+  if ((c.plan.length || c.groups.length || L.length) && !await confirmBox(`Refaci tragerea la sorți? ${L.length ? `Cele ${L.length} meciuri generate vor fi șterse.` : ''}`, 'Refă tragerea')) return;
+  if (c.type === 'ucl' && teams(c).some(t => !t.pot)) autoPots(c, 'order');
+  try {
+    L.forEach(m => delete c.matches[m.id]);
+    if (c.type === 'ucl'){ const r = uclDraw(c); toast(r.mode === 'urne' ? `Tragere efectuată: ${r.rounds} etape, 2 adversari din fiecare urnă` : `Tragere echilibrată efectuată: ${r.rounds} etape`); }
+    else { wcDraw(c); toast(`${c.groups.length} grupe trase la sorți`); }
+    await Sync.comp(c); Sync.audit('A efectuat tragerea la sorți', c); render();
+  } catch (e){ toast(e.message, 'err'); }
+}
+async function generate(c, all, both){
+  const ph = ui.mf.phase; let out = [];
+  if (c.type === 'ucl') out = uclGen(c, all);
+  else poolsOf(c).filter(p => c.type === 'wc' ? (!ui.mf.group || p.gid === ui.mf.group) : (both || p.key === ph)).forEach(p => out.push(...genPool(c, p, all)));
+  if (!out.length){ toast('Nu există meciuri noi de generat.', 'warn'); return; }
+  await Sync.comp(c); Sync.audit(`A generat ${out.length} meciuri`, c); toast(`${out.length} meciuri generate`); render();
+}
+async function buildKO(c){
+  const stage = c.type === 'league' ? 'playoff' : 'ko';
+  const L = ms(c).filter(m => m.stage === stage);
+  if (c.ko && !await confirmBox(`Refaci ${c.type === 'league' ? 'barajul' : 'tabloul eliminatoriu'} pe baza clasamentului curent?${L.length ? ` Se vor șterge cele <b>${L.length}</b> meciuri eliminatorii (${L.filter(m => m.played).length} jucate).` : ''}`, 'Refă')) return;
+  try {
+    L.forEach(m => delete c.matches[m.id]);
+    if (c.type === 'ucl') uclBuildKO(c); else if (c.type === 'wc') wcBuildKO(c); else leagueBuildPO(c);
+    if (c.settings.autoKO) ensureKO(c);
+    await Sync.comp(c); Sync.audit(c.type === 'league' ? 'A creat barajul' : 'A creat tabloul eliminatoriu', c);
+    toast(c.type === 'league' ? 'Baraj creat' : 'Tablou eliminatoriu creat'); ui.mf.phase = ''; render();
+  } catch (e){ toast(e.message, 'err'); }
+}
+async function genKO(c){
+  if (!c.ko){ toast('Tabloul nu a fost creat.', 'err'); return; }
+  const r = ensureKO(c);
+  if (!r.created.length && !r.changed.length && !r.removed.length){ toast('Nu există meciuri noi — echipele următoarelor dueluri nu sunt încă stabilite.', 'warn'); return; }
+  await Sync.matches(c, [...r.created, ...r.changed], r.removed); Sync.audit(`A generat ${r.created.length} meciuri eliminatorii`, c);
+  toast(`${r.created.length} meciuri create${r.changed.length ? `, ${r.changed.length} actualizate` : ''}`); if (ui.tieModal) ui.tieModal.close(); render();
+}
+function nextSeasonLabel(s){ s = String(s || ''); const m = s.match(/(\d+)(?!.*\d)/); if (!m) return s ? s + ' (2)' : String(new Date().getFullYear() + 1);
+  if (/^\d{4}\s*[-/]\s*\d{2,4}$/.test(s.trim())){ const [a, b] = s.split(/[-/]/).map(x => x.trim()); return `${+a + 1}-${b.length === 2 ? String((+b + 1) % 100).padStart(2, '0') : +b + 1}`; }
+  return s.slice(0, m.index) + (+m[1] + 1) + s.slice(m.index + m[1].length); }
+async function newSeason(c){
+  const s = c.settings, t1 = divTable(c, 'd1'), t2 = divTable(c, 'd2');
+  if (!t1.length){ toast('Liga 1 nu are echipe.', 'err'); return; }
+  const down = new Set(t1.slice(Math.max(0, t1.length - s.relegDirect)).map(r => r.id)), up = new Set(t2.slice(0, s.promoDirect).map(r => r.id));
+  let pending = 0;
+  if (c.ko) c.ko.rounds[0].ties.forEach(tie => { const st = tieState(c, tie); if (!st.winner){ pending++; return; } const l2 = c.teams[st.winner]?.div === 'd2'; if (l2){ up.add(st.winner); down.add(st.loser); } });
+  const pr = phaseProgress(c);
+  let warn = '';
+  if (!pr.done) warn += `<div class="banner">${ic('info')}Sezonul regulat nu e încheiat (${pr.played}/${pr.total}).</div>`;
+  if (!c.ko && Math.min(s.relegPlayoff, s.promoPlayoff) > 0) warn += `<div class="banner">${ic('info')}Barajul nu a fost creat — echipele de baraj rămân în ligile actuale.</div>`;
+  if (pending) warn += `<div class="banner">${ic('info')}${pending} baraj(e) nedecis(e) — echipele rămân în ligile actuale.</div>`;
+  const nm = set => [...set].map(id => esc(c.teams[id]?.name)).join(', ') || '—';
+  const m = modal('Sezonul următor', `${warn}<div class="grid g2"><div class="card"><h3>${ic('arrowUp')}Urcă în ${esc(s.div1)}</h3>${nm(up)}</div><div class="card"><h3>${ic('arrowDown')}Coboară în ${esc(s.div2)}</h3>${nm(down)}</div></div><div style="height:14px"></div>
+    ${fld('Eticheta noului sezon', `<input class="in" id="nsL" value="${esc(nextSeasonLabel(c.season))}">`)}<p class="muted small">Sezonul curent devine „Încheiat” și rămâne vizibil în arhivă.</p>`,
+    {okText: 'Creează sezonul', ok: async w => {
+      const nc = {id: uid(), type: 'league', name: c.name, season: $('#nsL', w).value.trim(), logo: c.logo, color: c.color, settings: clone(c.settings), teams: {}, matches: {}, plan: [], order: {}, groups: [], ko: null,
+        history: [{season: c.season || '', champ: c.teams[t1[0].id]?.name, champ2: t2[0] ? c.teams[t2[0].id]?.name : '', up: [...up].map(id => c.teams[id]?.name), down: [...down].map(id => c.teams[id]?.name)}, ...c.history],
+        createdAt: Date.now(), status: 'activ', prevId: c.id, by: auth.name};
+      Object.values(c.teams).forEach(t => { const x = clone(t); x.deduct = 0; if (up.has(t.id)) x.div = 'd1'; if (down.has(t.id)) x.div = 'd2'; nc.teams[x.id] = x; });
+      c.status = 'incheiat'; DB.comps[nc.id] = normC(nc);
+      await Sync.upd({[`comps/${nc.id}`]: nc, [`comps/${c.id}/status`]: 'incheiat'}); Sync.audit('A început sezonul ' + nc.season, nc);
+      toast('Sezon nou creat'); go(cpath(nc, 'overview'));
+    }});
+}
+
+/* ---------------- capturi PNG ---------------- */
+async function snap(id){
+  const el = document.getElementById(id); if (!el) return;
+  if (!window.html2canvas){ toast('Modulul de captură nu s-a încărcat (verifică internetul).', 'err'); return; }
+  const c = C(); const head = el.querySelector('.snap-head'), foot = el.querySelector('.snap-foot');
+  const title = head ? head.dataset.title || '' : '';
+  if (head) head.innerHTML = `${compLogo(c, 44)}<div class="t"><b>${esc(c ? c.name : 'FC Mobile')}</b><small>${esc(title)}${c && c.season ? ' · ' + esc(c.season) : ''}</small></div>`;
+  if (foot) foot.textContent = 'FC Mobile · ' + new Date().toLocaleString('ro-RO', {day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+  el.classList.add('capturing'); toast('Se generează imaginea…');
+  try {
+    await new Promise(r => setTimeout(r, 60));
+    const canvas = await html2canvas(el, {backgroundColor: '#0d1428', scale: 2, logging: false, useCORS: true, windowWidth: Math.max(1280, el.scrollWidth + 80)});
+    const url = canvas.toDataURL('image/png');
+    const name = ((c ? c.name + '-' : '') + (title || 'captura')).replace(/[^\w\-ăâîșțĂÂÎȘȚ ]+/g, '').replace(/\s+/g, '-').toLowerCase() + '.png';
+    const md = modal('Captură', `<div style="text-align:center"><img src="${url}" style="max-width:100%;border-radius:12px;border:1px solid var(--border)"></div>`, {wide: 'xwide', cancel: 'Închide',
+      extra: `<button class="btn primary" id="sDl">${ic('down')}Descarcă PNG</button><button class="btn" id="sCp">${ic('copy')}Copiază</button>${navigator.share ? `<button class="btn" id="sSh">${ic('share')}Distribuie</button>` : ''}`});
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    $('#sDl', md.el).onclick = () => download(name, blob);
+    $('#sCp', md.el).onclick = async () => { try { await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]); toast('Imagine copiată'); } catch { toast('Browserul nu permite copierea — folosește Descarcă.', 'err'); } };
+    const sh = $('#sSh', md.el); if (sh) sh.onclick = async () => { try { await navigator.share({files: [new File([blob], name, {type: 'image/png'})], title: c ? c.name : 'FC Mobile'}); } catch {} };
+  } catch (e){ console.error(e); toast('Captura a eșuat: ' + e.message, 'err'); }
+  finally { el.classList.remove('capturing'); }
+}
+
+/* ---------------- administratori & backup ---------------- */
+function adminModal(id){
+  const a = id ? DB.admins[id] : null;
+  modal(a ? 'Resetează parola: ' + esc(a.name) : 'Administrator nou', `${a ? '' : fld('Nume', '<input class="in" id="adN">')}${fld('Parolă nouă', '<input class="in" id="adP" type="password" autocomplete="new-password">', 'Minim 4 caractere')}`,
+    {ok: async w => {
+      const p = $('#adP', w).value; if (p.length < 4){ toast('Parola e prea scurtă', 'err'); return false; }
+      if (a){ a.hash = passHash(p); await Sync.set(`admins/${id}/hash`, a.hash); if (id === auth.id) setAuth(id); toast('Parolă schimbată'); }
+      else { const n = $('#adN', w).value.trim(); if (!n){ toast('Completează numele', 'err'); return false; } const nid = uid(); DB.admins[nid] = {name: n, hash: passHash(p), role: 'admin', created: Date.now()}; await Sync.set('admins/' + nid, DB.admins[nid]); Sync.audit('A adăugat administratorul ' + n); toast('Administrator adăugat'); }
+      render();
+    }});
+}
+function exportAll(){ download(`fcm-competitii-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({app: 'fcm-competitii', version: APP_VERSION, exportedAt: Date.now(), comps: DB.comps}, null, 1)); }
+async function importJSON(){
+  const f = await pickFile('application/json,.json'); if (!f) return;
+  let d; try { d = JSON.parse(await f.text()); } catch { toast('Fișier JSON invalid', 'err'); return; }
+  const list = d.comp ? [d.comp] : d.comps ? Object.values(d.comps) : (d.type && d.teams ? [d] : []);
+  if (!list.length){ toast('Fișierul nu conține competiții', 'err'); return; }
+  const exist = list.filter(c => DB.comps[c.id]).length;
+  if (!await confirmBox(`Import ${list.length} competiți${list.length === 1 ? 'e' : 'i'}.${exist ? ` <b>${exist}</b> există deja și vor fi suprascrise.` : ''}`, 'Importă', false)) return;
+  const o = {}; list.forEach(c => { c = normC(c); DB.comps[c.id] = c; o['comps/' + c.id] = c; });
+  await Sync.upd(o); Sync.audit(`A importat ${list.length} competiții`); toast('Import finalizat'); render();
+}
+
+/* ---------------- delegare evenimente ---------------- */
+const ACT = {
+  nav: d => go(d.to || ''), menu: () => document.body.classList.toggle('menu'),
+  login: () => loginModal(), setupAdmin: () => setupAdmin(),
+  logout: () => { Object.assign(auth, {id: null, name: '', role: 'viewer', h: ''}); localStorage.removeItem(AUTH_KEY); toast('Te-ai deconectat'); render(); },
+  goLocal: () => { Sync.err = ''; Sync.initLocal(); },
+  newComp: () => newCompWizard(), editComp: () => need(C()) && editCompModal(C()),
+  openTeam: d => { $$('.mb').forEach(x => x.remove()); go(cpath(C(), 'team', d.id)); },
+  addTeam: d => need(C()) && teamModal(C(), null, d.div ? {div: d.div} : (C().type === 'league' ? {div: 'd1'} : {})),
+  bulkTeams: () => need(C()) && bulkModal(C()),
+  editTeam: d => need(C()) && teamModal(C(), C().teams[d.id]),
+  delTeam: d => need(C()) && delTeam(C(), d.id),
+  teamLogo: async d => { const c = C(); if (!need(c)) return; const f = await pickFile('image/*'); if (!f) return; const t = c.teams[d.id]; t.logo = await readImage(f); await Sync.team(c, t); toast('Logo actualizat'); render(); },
+  autoPots: async d => { const c = C(); if (!need(c)) return; autoPots(c, d.mode); await Sync.comp(c); toast('Echipele au fost distribuite în urne'); render(); },
+  doDraw: () => need(C()) && doDraw(C()),
+  mf: d => { ui.mf[d.k] = d.v; if (d.k === 'phase'){ ui.mf.round = ''; ui.mf.group = ''; } render(); },
+  gen: d => need(C()) && generate(C(), d.all === '1', d.both === '1'),
+  genKO: () => need(C()) && genKO(C()),
+  buildKO: () => need(C()) && buildKO(C()),
+  newSeason: () => need(C()) && newSeason(C()),
+  addMatch: () => need(C()) && addMatchModal(C()),
+  quickSave: d => need(C()) && quickSave(C(), d.id),
+  editMatch: d => need(C()) && matchModal(C(), d.id),
+  viewMatch: d => viewMatchModal(C(), d.id),
+  openTie: d => tieModal(C(), d.id),
+  tview: d => { ui.tableView = d.v; render(); },
+  stab: d => { ui.statsTab = d.v; render(); },
+  snap: d => snap(d.id),
+  saveSettings: async () => { const c = C(); if (!isAdmin()) return;
+    const s = readSettings($('#setForm'), c.type); const old = c.settings;
+    if (c.type === 'ucl' && c.plan.length && s.matchesPerTeam !== old.matchesPerTeam) toast('Numărul de meciuri se aplică doar la o nouă tragere la sorți.', 'warn');
+    if (c.type === 'ucl' && s.playoff && !isPow2(s.direct)){ toast('Calificatele direct trebuie să fie 2, 4, 8 sau 16', 'err'); return; }
+    c.settings = {...old, ...s}; await Sync.set(`comps/${c.id}/settings`, c.settings); Sync.audit('A modificat regulamentul', c); toast('Setări salvate'); render(); },
+  toggleStatus: async () => { const c = C(); if (!isAdmin()) return; c.status = c.status === 'incheiat' ? 'activ' : 'incheiat'; await Sync.set(`comps/${c.id}/status`, c.status); toast(c.status === 'incheiat' ? 'Competiție încheiată' : 'Competiție redeschisă'); render(); },
+  exportComp: () => { const c = C(); download(`${c.name.replace(/\W+/g, '-')}-${c.season || ''}.json`, JSON.stringify({app: 'fcm-competitii', version: APP_VERSION, comp: c}, null, 1)); },
+  dupComp: async () => { const c = C(); if (!isAdmin()) return; const n = clone(c); Object.assign(n, {id: uid(), name: c.name + ' (copie)', matches: {}, plan: [], order: {}, ko: null, createdAt: Date.now(), status: 'activ'}); if (n.type === 'wc'){ n.groups = []; Object.values(n.teams).forEach(t => delete t.group); }
+    Object.values(n.teams).forEach(t => t.deduct = 0); DB.comps[n.id] = normC(n); await Sync.comp(n); toast('Competiție duplicată'); go(cpath(n, 'overview')); },
+  resetComp: async () => { const c = C(); if (!isAdmin()) return; if (!await confirmBox('Ștergi <b>toate meciurile și rezultatele</b> și tabloul eliminatoriu? Echipele și tragerea la sorți se păstrează.', 'Șterge tot')) return;
+    c.matches = {}; c.ko = null; await Sync.comp(c); Sync.audit('A șters toate meciurile', c); toast('Meciurile au fost șterse'); render(); },
+  delComp: async () => { const c = C(); if (!isAdmin()) return; if (!await confirmBox(`Ștergi definitiv competiția <b>${esc(c.name)}</b> cu toate echipele și rezultatele?`, 'Șterge definitiv')) return;
+    const v = await promptBox('Confirmare finală', 'Scrie numele competiției pentru a confirma'); if (v == null || v.trim() !== c.name){ if (v != null) toast('Numele nu coincide', 'err'); return; }
+    delete DB.comps[c.id]; await Sync.set('comps/' + c.id, null); Sync.audit('A șters competiția ' + c.name); toast('Competiție ștearsă'); go(''); },
+  addAdmin: () => isSuper() && adminModal(), resetPass: d => isSuper() && adminModal(d.id), chPass: () => adminModal(auth.id),
+  delAdmin: async d => { if (!isSuper()) return; if (!await confirmBox(`Ștergi administratorul <b>${esc(DB.admins[d.id].name)}</b>?`, 'Șterge')) return; delete DB.admins[d.id]; await Sync.set('admins/' + d.id, null); render(); },
+  exportAll: () => exportAll(), importJSON: () => importJSON()
+};
+const CHG = {
+  teamPot: async (el, d) => { const c = C(); if (!need(c)) return; const t = c.teams[d.id]; if (el.value) t.pot = +el.value; else delete t.pot; await Sync.team(c, t); render(); },
+  teamDiv: async (el, d) => { const c = C(); if (!need(c)) return; const t = c.teams[d.id];
+    const L = ms(c).filter(m => (m.home === t.id || m.away === t.id) && m.stage === 'league');
+    if (L.length && !await confirmBox(`Muți <b>${esc(t.name)}</b> în ${esc(c.settings[el.value === 'd1' ? 'div1' : 'div2'])}? Cele ${L.length} meciuri ale ei din liga actuală vor fi șterse.`, 'Mută')){ render(); return; }
+    L.forEach(m => delete c.matches[m.id]); t.div = el.value; await Sync.comp(c); toast('Echipă mutată'); render(); },
+  teamGroup: async (el, d) => { const c = C(); if (!need(c)) return; const t = c.teams[d.id];
+    const L = ms(c).filter(m => (m.home === t.id || m.away === t.id) && m.stage === 'group');
+    if (L.some(m => m.played)){ toast('Echipa are meciuri jucate în grupă.', 'err'); render(); return; }
+    L.forEach(m => delete c.matches[m.id]); t.group = el.value; await Sync.comp(c); render(); },
+  mf: (el, d) => { ui.mf[d.k] = el.value; render(); }
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const f = ACT[el.dataset.act]; if (!f) return;
+  if (el.tagName === 'A') e.preventDefault();
+  f(el.dataset, el, e);
+});
+document.addEventListener('change', e => { const el = e.target.closest('[data-chg]'); if (el && CHG[el.dataset.chg]) CHG[el.dataset.chg](el, el.dataset); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.closest && e.target.closest('[data-mid]')){
+    const box = e.target.closest('[data-mid]'); const ins = $$('input', box);
+    if (e.target === ins[0] && ins[1].value === ''){ ins[1].focus(); return; }
+    quickSave(C(), box.dataset.mid);
+  }
+  if (e.key === 'Escape'){ const m = $$('.mb').pop(); if (m) m.querySelector('[data-x]').click(); }
+});
+document.addEventListener('click', e => { if (document.body.classList.contains('menu') && !e.target.closest('#sidebar') && !e.target.closest('#menuBtn')) document.body.classList.remove('menu'); });
+
+/* ---------------- pornire ---------------- */
+ui.route = parseRoute();
+render();
+Sync.init();
+</script>
+</body>
+</html>
 
